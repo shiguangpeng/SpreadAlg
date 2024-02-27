@@ -28,7 +28,9 @@ endif()
 
 file(GLOB sources CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp)
 add_executable(${PROJECT_NAME} ${sources})
-target_link_libraries(${PROJECT_NAME} doctest::doctest Spread::Spread)
+
+find_package(GDAL REQUIRED)
+target_link_libraries(${PROJECT_NAME} doctest::doctest GDAL::GDAL Spread::Spread)
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
 
 # enable compiler warnings

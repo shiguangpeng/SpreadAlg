@@ -10,6 +10,6 @@ TEST_CASE("Spread") {
 
   Spread spread("Tests");
   std::string aa = spread.program_version();
-  std::cout << aa << std::endl;
-  MESSAGE(aa);
+  const char *p = spread.test_gdal();
+  MESSAGE(*p);
 }
