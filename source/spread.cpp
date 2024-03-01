@@ -15,16 +15,18 @@ CSpreadAnalyse::~CSpreadAnalyse() {}
 bool CSpreadAnalyse::InitEnvironment() {
   // 通过打开的栅格数据，初始化类相关成员。
   const char* path = elevationPath.c_str();
-  GDALDataset* ptr = nullptr;
-  int flag = RasterDataSource::OpenRaster(path, ptr);
-  if (flag == -1) {
+  RasterDataSource ptr = RasterDataSource();
+  GDALDataset* data = ptr.OpenRaster(path);
+  if (data == nullptr) {
     errorInfo = "栅格数据打开失败。";
     return false;
   }
-  char** metadata = ptr->GetMetadata("");
+  // 注册驱动
+  GDALAllRegister();
+  char** metadata = data->GetMetadataDomainList();
   std::cout << "返回结果：" << *(*metadata + 1) << std::endl;
   // 结束前关闭数据集对象
-  GDALClose(ptr);
+  GDALClose(data);
   errorInfo = "栅格数据打开成功。";
   return true;
 }

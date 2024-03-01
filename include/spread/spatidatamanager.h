@@ -33,7 +33,7 @@ namespace spatidatamanager {
     /// @brief 根据传入的路径，打开对应的栅格数据，返回数据的GDALDataset指针
     /// @param filePath
     /// @return GDALDataset* 该文件的GDALDataset指针
-    static int OpenRaster(const char* filePath, GDALDataset* ptr);
+    GDALDataset* OpenRaster(const char* filePath);
   };
 #pragma endregion
 
