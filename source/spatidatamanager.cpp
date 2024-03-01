@@ -22,6 +22,8 @@ int RasterDataSource::OpenRaster(const char* path, GDALDataset* ptr) {
   GDALAllRegister();
   ptr = static_cast<GDALDataset*>(GDALOpen(path, GA_ReadOnly));
   char** metadata = ptr->GetMetadata();
+  // 打开tiff文件
+
   std::cout << "metadata: " << metadata << std::endl;
   if (ptr == NULL) {
     return -1;
