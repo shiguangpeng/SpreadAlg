@@ -10,29 +10,7 @@
 #include "gdal_priv.h"
 
 namespace spread {
-  /**
-   * @brief 临时测试类
-   *
-   */
-  class Spread {
-    std::string name;
-
-  public:
-    /**
-     * @brief Creates a new spread
-     * @param name the name to project
-     */
-    Spread(std::string name);
-
-    /**
-     * @brief indicate the version of program
-     * @return a string containing the version info
-     */
-    std::string program_version() const;
-    const char* test_gdal();
-  };
-
-    /// @brief 描述站的结构体
+  /// @brief 描述站的结构体
   typedef struct StationST {
     /// @brief 台站id
     long id;
@@ -76,13 +54,13 @@ namespace spread {
     CSpreadAnalyse();
     virtual ~CSpreadAnalyse();
 
-  protected:
+  public:
     /**
      * @brief 初始化分析环境
      */
     bool InitEnvironment();
 
-  protected:
+  public:
     /**
      * @brief 分析环境参数结构体，封装了对环境参数的get与set
      */
@@ -217,7 +195,7 @@ namespace spread {
     // std::vector<IDBLossElement*,IDBLossElement*>els;
     std::vector<std::string> otherNames;
     std::vector<std::string> otherPaths;
-  
+
   protected:
     float_t GetRadiuValue(Station& stationInfo, std::vector<double_t>& rsv, OGRPoint* point);
   };
@@ -275,8 +253,6 @@ namespace spread {
     /// @param outPutCellSize 输出栅格分辨率
     virtual void SetOutputCellSize(double_t outPutCellSize) = 0;
   };
-
-
 
 }  // namespace spread
 
