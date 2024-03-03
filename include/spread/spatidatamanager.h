@@ -6,7 +6,6 @@
 #include "gdal_priv.h"
 
 namespace spatidatamanager {
-#pragma region "空间数据管理基类SpatialDataManagement"
   /**
    * @brief
    * 数据源管理基类，用于对数据的操作，如：栅格、矢量以及空间数据库，该类以及子类都是对GDAL能力的封装
@@ -22,9 +21,7 @@ namespace spatidatamanager {
     SpatialDataManagement();
     ~SpatialDataManagement();
   };
-#pragma endregion
 
-#pragma region "栅格数据RasterDataSource"
   class RasterDataSource : public SpatialDataManagement {
   public:
     RasterDataSource();
@@ -35,14 +32,11 @@ namespace spatidatamanager {
     /// @return GDALDataset* 该文件的GDALDataset指针
     GDALDataset* OpenRaster(const char* filePath);
   };
-#pragma endregion
 
-#pragma region "VectorDataSoure"
   /**
    * @brief 封装了GDAL矢量数据的相关操作
    */
   class VectorDataSoure : public SpatialDataManagement {};
-#pragma endregion
 
 }  // namespace spatidatamanager
 #endif

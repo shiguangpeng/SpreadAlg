@@ -8,7 +8,6 @@
 using namespace spread;
 using namespace spatidatamanager;
 
-#pragma region "传播分析基类CSpreadAnalyse定义"
 CSpreadAnalyse::CSpreadAnalyse() {}
 CSpreadAnalyse::~CSpreadAnalyse() {}
 
@@ -21,13 +20,21 @@ bool CSpreadAnalyse::InitEnvironment() {
     errorInfo = "栅格数据打开失败。";
     return false;
   }
-  // 注册驱动
-  GDALAllRegister();
-  char** metadata = data->GetMetadataDomainList();
-  std::cout << "返回结果：" << *(*metadata + 1) << std::endl;
+  // 使用GDAL数据指针初始化栅格属性
+  // 行列数
+  cols = data->GetRasterXSize();
+  rows = data->GetRasterYSize();
+  int bandNum = data->GetRasterCount();
+  // 波段从1开始
+  // for (int i = 1; i <= bandNum; i++) {
+  //   GDALRasterBand* band = data->GetRasterBand(i);
+  //   int x = 0;
+  //   int y = 0;
+  // }
+
   // 结束前关闭数据集对象
   GDALClose(data);
+  GDALDestroy();
   errorInfo = "栅格数据打开成功。";
   return true;
 }
-#pragma endregion
