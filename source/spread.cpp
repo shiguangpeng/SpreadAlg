@@ -24,7 +24,10 @@ bool CSpreadAnalyse::InitEnvironment() {
   // 行列数
   cols = data->GetRasterXSize();
   rows = data->GetRasterYSize();
-  int bandNum = data->GetRasterCount();
+  double_t geoInfo[6];
+  data->GetGeoTransform(geoInfo);
+  std::cout << "仿射变换参数：" << *geoInfo << std::endl;
+  //  int bandNum = data->GetRasterCount();
   // 波段从1开始
   // for (int i = 1; i <= bandNum; i++) {
   //   GDALRasterBand* band = data->GetRasterBand(i);

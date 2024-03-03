@@ -15,7 +15,7 @@ TEST_SUITE("空间数据管理的测试用例") {
 
   TEST_CASE("InitEnvironment测试") {
     using namespace spread;
-    std::string path = "/home/shigp/Downloads/test.tif";
+    std::string path = "F:\\work\\spreadmodel\\test.tif"; // "/home/shigp/Downloads/test.tif"; // F:\work\spreadmodel
     CSpreadAnalyse sp = CSpreadAnalyse();
     sp.elevationPath = path;
     sp.InitEnvironment();
