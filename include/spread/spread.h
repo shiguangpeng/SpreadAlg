@@ -98,19 +98,20 @@ namespace spread {
     double_t cellSize;
 
     /**
-     * @brief 最小经度位置（左下角）
+     * @brief 最小经度位置（左上角）
      */
     double_t xMin;
 
     /**
-     * @brief 最大纬度位置（右上角）
+     * @brief 最大纬度位置（左上角）
      */
     double_t yMax;
 
     /**
      * @brief 栅格无数据（或无有效值）的填充值
+     * @attention 默认值-9999.99，代表栅格中没有空值
      */
-    double_t noData;
+    double_t noData = -9999.99;
 
     /**
      * @brief 环境是否已经被初始化
