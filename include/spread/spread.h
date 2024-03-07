@@ -51,7 +51,7 @@ namespace spread {
    */
   class CSpreadAnalyse {
   public:
-    CSpreadAnalyse();
+    CSpreadAnalyse() = default;
     virtual ~CSpreadAnalyse();
 
   public:
@@ -64,7 +64,7 @@ namespace spread {
     /**
      * @brief 分析环境参数结构体，封装了对环境参数的get与set
      */
-    struct AnalyseEnvironmentST *pEnvi;
+    struct AnalyseEnvironment *pEnvi;
 
     /**
      * @brief 高程栅格路径
@@ -72,7 +72,7 @@ namespace spread {
     std::string elevationPath;
 
     // 封装过的根据条件获取栅格数据的对象
-    // IGDALRasterReaderByFileArray*pElevs;
+    IGDALRasterReaderByFileArray *pElevs;
 
     /**
      * @brief 错误信息
@@ -109,9 +109,8 @@ namespace spread {
 
     /**
      * @brief 栅格无数据（或无有效值）的填充值
-     * @attention 默认值-9999.99，代表栅格中没有空值
      */
-    double_t noData = -9999.99;
+    double_t noData;
 
     /**
      * @brief 环境是否已经被初始化
@@ -140,8 +139,7 @@ namespace spread {
     double_t subExtent[4];
 
   public:
-    CFieldStrengthAnalyse();
-    virtual ~CFieldStrengthAnalyse();
+    virtual ~CFieldStrengthAnalyse() = default;
     // 场强分析算法的调用入口，每个场强分析类都有自己的场强分析调用入口，重定义。
     bool FieldStrengthAnalyse(std::string savePath, RasterCreateFileType type);
 
@@ -209,7 +207,7 @@ namespace spread {
   protected:
     std::vector<IGDALRasterReaderByFileArray *> otherReaders;
     std::vector<IFileFloatArray *> otherDatas;
-    std::vector<IDBLossElement *, IDBLossElement *> els;
+    std::vector<IDBLossElement *> els;
     std::vector<std::string> otherNames;
     std::vector<std::string> otherPaths;
   };
@@ -232,7 +230,11 @@ namespace spread {
   /**
    * @brief 分析环境的参数结构体，专门管理分析环境参数
    */
-  struct AnalyseEnvironmentST {
+  struct AnalyseEnvironment : public IAnalyseEnvironment {
+  public:
+    AnalyseEnvironment();
+    // ~AnalyseEnvironment();
+
   private:
     OGRPoint *leftTop;
     double_t cellSize;
@@ -243,14 +245,49 @@ namespace spread {
   public:
     /// @brief 获取栅格左上角坐标
     /// @return OGRPoint*
-    virtual OGRPoint *GetLeftTop() = 0;
+    void GetLeftTop(OGRPoint **p) override;
     /// @brief 设置栅格左上角坐标
     /// @param point OGR坐标对象
-    virtual void SetLetTop(OGRPoint point) = 0;
+    void SetLeftTop(OGRPoint *point) override;
+    /// @brief 获取栅格分辨率
+    /// @return 栅格分辨率
+    void GetCellSize(double_t *cellSize) override;
+    /// @brief 设置栅格分辨率
+    /// @param cellSize 栅格分辨率
+    void SetCellSize(double_t cellSize) override;
+    /// @brief 获取栅格的列数
+    /// @return 栅格列总数
+    void GetCols(long *cols) override;
+    /// @brief 设置栅格的列数
+    /// @param cols 栅格列数
+    void SetCols(long cols) override;
+    /// @brief 获取栅格行数
+    /// @return 栅格行数
+    void GetRows(long *rows) override;
+    /// @brief 设置栅格行数
+    /// @param rows 栅格行数
+    void SetRows(long rows) override;
+    /// @brief 获取输出栅格的分辨率
+    /// @return 输出栅格的分辨率
+    double_t GetOutputCellSize(double_t *cellSize) override;
+    /// @brief 设置输出栅格的分辨率
+    /// @param outPutCellSize 输出栅格分辨率
+    void SetOutputCellSize(double_t outPutCellSize) override;
+  };
+
+  // 环境类的接口
+  struct IAnalyseEnvironment {
+  protected:
+    /// @brief 获取栅格左上角坐标
+    /// @return void
+    virtual void GetLeftTop(OGRPoint **p) = 0;
+    /// @brief 设置栅格左上角坐标
+    /// @param point OGR坐标对象
+    virtual void SetLeftTop(OGRPoint *point) = 0;
 
     /// @brief 获取栅格分辨率
     /// @return 栅格分辨率
-    virtual double_t GetCellSize() = 0;
+    virtual void GetCellSize(double_t *cellSize) = 0;
     /// @brief 设置栅格分辨率
     /// @param cellSize 栅格分辨率
     virtual void SetCellSize(double_t cellSize) = 0;
@@ -271,13 +308,14 @@ namespace spread {
 
     /// @brief 获取输出栅格的分辨率
     /// @return 输出栅格的分辨率
-    virtual double_t GetOutputCellSize() = 0;
+    virtual double_t GetOutputCellSize(double_t *cellSize) = 0;
     /// @brief 设置输出栅格的分辨率
     /// @param outPutCellSize 输出栅格分辨率
     virtual void SetOutputCellSize(double_t outPutCellSize) = 0;
   };
 
-  /* ------------------ DBLossElement结构体，父结构体，保存绕射传播的各种参数 -------------------*/
+  /* ------------------ DBLossElement结构体，父结构体，保存绕射传播的各种参数
+     -------------------*/
   struct IDBLossElement {
   protected:
     // 是否复杂模型
@@ -334,6 +372,22 @@ namespace spread {
     virtual void SetBufferSize(FileArrayBufferSize newVal) = 0;
   };
 
+  /* ------------------------------Stations ------------------------------------ */
+
+  struct CStations : public IStations {
+  protected:
+    std::vector<Station *> stations;
+
+  public:
+    void AddStation(Station station) override;
+    void GetCount(long *pVal) override;
+    void RemoveAt(long index) override;
+    void RemoveAll(void) override;
+    void GetItem(long index, Station *pVal) override;
+    void SetItem(long index, Station newVal) override;
+    void PickHeightFromDEM(IGDALRasterReaderByPixel *pReader, bool *pVal) override;
+  };
+
   struct IStations {
   public:
     virtual void AddStation(Station station) = 0;
@@ -346,7 +400,7 @@ namespace spread {
 
     virtual void GetItem(long index, Station *pVal) = 0;
 
-    virtual void PutItem(long index, Station newVal) = 0;
+    virtual void SetItem(long index, Station newVal) = 0;
 
     virtual void PickHeightFromDEM(IGDALRasterReaderByPixel *pReader, bool *pVal) = 0;
   };
@@ -385,7 +439,7 @@ namespace spread {
 
   // 栅格数据类型，可选tiff，erdas，envi，pci
   typedef enum RasterCreateFileTypeST {
-    rcftTiff = 0,
+    rcftTiff = 0x0,
     rcftErdasImagine = 0x1,
     rcftPCIPix = 0x2,
     rcftEnviHdr = 0x3
@@ -402,11 +456,17 @@ namespace spread {
     rcdtFloat64 = 0x7
   } RasterCreateDataType;
 
+  // 为CGDALRasterReaderByXXX系列的列中的variant类型做一个替换，替换成这个联合
+  union PBand_T {
+    int bandNumber;
+    char *rasterPath;
+  };
+
   /* ----------------------------- GDAL读取栅格数据的封装 ---------------------------------------*/
   struct IGDALRasterReader {
   public:
     virtual void OpenRaster(std::string lpszPathName, bool *pVal) = 0;
-    virtual void SetRasterBand(GDALRasterBand band, bool *pVal) = 0;
+    virtual void SetRasterBand(PBand_T pBand, bool *pVal) = 0;
   };
 
   struct IGDALRasterReaderByFileArray : public IGDALRasterReader {
@@ -432,10 +492,55 @@ namespace spread {
         = 0;
   };
 
-  // 获取指定坐标处的dem值
+  // 按像素读取栅格，接口
   struct IGDALRasterReaderByPixel : public IGDALRasterReader {
   public:
     virtual void GetPixelValue(long col, long row, float_t *pVal) = 0;
+  };
+
+  // IGDALRasterReaderByPixel继承了IGDALRasterProperties和IGDALRasterReaderByPixel
+  class CGDALRasterReaderByPixel : public IGDALRasterProperties, public IGDALRasterReaderByPixel {
+  protected:
+    long rows;
+    long cols;
+    OGREnvelope *extent;
+    double_t cellSize;
+    GDALDataset *poDataset;
+    GDALDataset *poSubDataset;
+    // 由 VARIANT类型 pBand
+    union PBand_T pBand;
+
+    GDALRasterBand *poBand;
+    std::vector<std::string> metadata;
+    std::string lpszPathName;
+
+  public:
+    GDALColorTable *CreateColorTable();
+    GDALRasterBand *GetGDALBand();
+
+  public:
+    void OpenRaster(std::string lpszPathName, bool *pVal) override;
+    void SetRasterBand(PBand_T pBand, bool *pVal) override;
+    void GetPathName(std::string *pVal) override;
+    void GetCurrentBand(PBand_T *pVal) override;
+    void GetRows(long *pVal) override;
+    void GetCols(long *pVal) override;
+    void GetExtent(OGREnvelope **pVal) override;
+    void GetCellSize(double_t *pVal) override;
+    void GetBandCount(long *pVal) override;
+    void GetNoData(double_t *pVal) override;
+    void SetNoData(double_t pVal) override;
+    void GetMinMax(bool bApproxOK, double_t *min, double_t *max, bool *pVal) override;
+    void GetSpatialReference(OGRSpatialReference **pVal) override;
+    void GetDataType(RasterDataType *pVal) override;
+    void GetPixelValue(long col, long row, float_t *data) override;
+    void ComputeRasterMinMax(bool bApproxOK, double_t *min, double_t *max, bool *pVal) override;
+    void GetStatistics(bool bApproxOK, double_t *min, double_t *max, double_t *mean,
+                       double_t *stddev, bool *pVal) override;
+    void ComputeStatistics(bool bApproxOK, double_t *min, double_t *max, double_t *mean,
+                           double_t *stddev, bool *pVal) override;
+    void GetMetaData(std::vector<std::string> **pVal);
+    void GetColorTable(std::vector<GDALColorTable> **pVal);
   };
 
   // why? 暂时根据原项目移植
@@ -443,6 +548,30 @@ namespace spread {
   public:
   };
 
+  struct IGDALRasterProperties : public IGDALRasterReader {
+  public:
+    virtual void GetPathName(std::string *pVal) = 0;
+    virtual void GetCurrentBand(PBand_T *pVal) = 0;
+    virtual void GetRows(long *pVal) = 0;
+    virtual void GetCols(long *pVal) = 0;
+    virtual void GetExtent(OGREnvelope **pVal) = 0;
+    virtual void GetCellSize(double_t *pVal) = 0;
+    virtual void GetBandCount(long *pVal) = 0;
+    virtual void GetNoData(double_t *pVal) = 0;
+    virtual void SetNoData(double_t pVal) = 0;
+    virtual void GetMetaData(std::vector<double_t> **pVal) = 0;
+    virtual void GetDataType(enum RasterDataType *pVal) = 0;
+    virtual void GetMinMax(bool bApproxOK, double_t *min, double_t *max, bool *pVal) = 0;
+    virtual void GetStatistics(bool bApproxOK, double_t *min, double_t *max, double_t *mean,
+                               double_t *stddev, bool *pVal)
+        = 0;
+    virtual void ComputeRasterMinMax(bool bApproxOK, double_t *min, double_t *max, bool *pVal) = 0;
+    virtual void ComputeStatistics(bool bApproxOK, double_t *min, double_t *max, double_t *mean,
+                                   double_t *stddev, bool *pVal)
+        = 0;
+    virtual void GetSpatialReference(OGRSpatialReference **pVal) = 0;
+    virtual void GetColorTable(std::vector<double_t> **pVal) = 0;
+  };
 }  // namespace spread
 
 #endif  // !SPREADALG_INCLUDE_SPREAD_

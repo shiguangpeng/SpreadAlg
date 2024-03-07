@@ -9,58 +9,147 @@ using namespace spread;
 using namespace spatidatamanager;
 
 /*** --------------------- 所有场强分析算法的基类，实现 ------------------------------- */
-
-CSpreadAnalyse::CSpreadAnalyse() {}
-CSpreadAnalyse::~CSpreadAnalyse() {}
+CSpreadAnalyse::~CSpreadAnalyse(){};
 bool CSpreadAnalyse::InitEnvironment() {
-  // 通过打开的栅格数据，初始化类相关成员。
-  const char* path = elevationPath.c_str();
-  RasterDataSource ptr = RasterDataSource();
-  GDALDataset* data = ptr.OpenRaster(path);
-  if (data == nullptr) {
-    errorInfo = "栅格数据打开失败。";
+  // // 通过打开的栅格数据，初始化类相关成员。
+  // const char* path = elevationPath.c_str();
+  // RasterDataSource ptr = RasterDataSource();
+  // GDALDataset* data = ptr.OpenRaster(path);
+  // if (data == nullptr) {
+  //   errorInfo = "栅格数据打开失败。";
+  //   return false;
+  // }
+  // // 使用GDAL数据指针初始化栅格属性
+  // // 行列数
+  // cols = data->GetRasterXSize();
+  // rows = data->GetRasterYSize();
+  // // 仿射变换参数
+  // double_t geoInfo[6];
+  // data->GetGeoTransform(geoInfo);
+  // xMin = geoInfo[0];
+  // yMax = geoInfo[3];
+  // cellSize = geoInfo[1];
+  // // 获取当前tif图的所有波段数量
+  // int bandNum = data->GetRasterCount();
+  // // 波段从1开始，dem这种结果图层也只有一个图层
+  // int* dataTypeFlag = nullptr;
+  // double_t bandNoData = 0.0;
+  // for (int i = 1; i <= bandNum; i++) {
+  //   GDALRasterBand* band = data->GetRasterBand(i);
+  //   GDALDataType dataType = band->GetRasterDataType();
+  //   // 根据GetNoDataValue()方法的说明，特定数据类型需要使用其他方法
+  //   if (dataType == GDALDataType::GDT_Int64) {
+  //     bandNoData = band->GetNoDataValueAsInt64(dataTypeFlag);
+  //   } else if (dataType == GDALDataType::GDT_UInt64) {
+  //     bandNoData = band->GetNoDataValueAsUInt64(dataTypeFlag);
+  //   } else {
+  //     bandNoData = band->GetNoDataValue(dataTypeFlag);
+  //   }
+  //   // todo: 就项目来说，像dem这种结果tiff图，土地利用类型等，一般只有一个波段。这里先break;
+  //   break;
+  // }
+  // if (dataTypeFlag) {
+  //   noData = bandNoData;
+  // }
+  // // 结束前关闭数据集对象
+  // GDALClose(data);
+  // GDALDestroy();
+  // errorInfo = "栅格数据打开成功。";
+  // return true;
+  if (isInit) return true;
+  bool IsOk;
+  pElevs->OpenRaster(elevationPath, &IsOk);
+  if (!IsOk) {
+    errorInfo = "打开高程数据失败";
     return false;
   }
-  // 使用GDAL数据指针初始化栅格属性
-  // 行列数
-  cols = data->GetRasterXSize();
-  rows = data->GetRasterYSize();
-  // 仿射变换参数
-  double_t geoInfo[6];
-  data->GetGeoTransform(geoInfo);
-  xMin = geoInfo[0];
-  yMax = geoInfo[3];
-  cellSize = geoInfo[1];
-  // 获取当前tif图的所有波段数量
-  int bandNum = data->GetRasterCount();
-  // 波段从1开始，dem这种结果图层也只有一个图层
-  int* dataTypeFlag = nullptr;
-  double_t bandNoData = 0.0;
-  for (int i = 1; i <= bandNum; i++) {
-    GDALRasterBand* band = data->GetRasterBand(i);
-    GDALDataType dataType = band->GetRasterDataType();
-    // 根据GetNoDataValue()方法的说明，特定数据类型需要使用其他方法
-    if (dataType == GDALDataType::GDT_Int64) {
-      bandNoData = band->GetNoDataValueAsInt64(dataTypeFlag);
-    } else if (dataType == GDALDataType::GDT_UInt64) {
-      bandNoData = band->GetNoDataValueAsUInt64(dataTypeFlag);
-    } else {
-      bandNoData = band->GetNoDataValue(dataTypeFlag);
+  // VARIANT pBand;
+  // pBand.vt = VT_I4;
+  // pBand.intVal = 1;
+  int pBand = 1;
+  // 设置栅格的波段，默认第一个波段
+  pElevs->SetRasterBand(pBand, &IsOk);
+  if (!IsOk) {
+    errorInfo = "打开高程数据失败";
+    return false;
+  }
+  IGDALRasterProperties* pPro;
+  // pElevs->QueryInterface(IID_IGDALRasterProperties, (void**)&pPro);
+  pPro->GetNoData(&noData);
+  pPro->GetCols(&cols);
+  pPro->GetRows(&rows);
+  OGREnvelope* Extent;
+  pPro->GetExtent(&Extent);
+  OGRPoint* ppt;
+  // ::CoCreateInstance(CLSID_PointDef, NULL, CLSCTX_INPROC_SERVER, IID_IPoint, (void**)&ppt);
+  double_t left, top;
+  // Extent->GetLeft(&left);
+  // Extent->GetTop(&top);
+  left = Extent->MinY;
+  top = Extent->MaxX;
+  // ppt->PutCoord(left, top);
+  ppt->setX(top);
+  ppt->setY(left);
+  pPro->GetCellSize(&cellSize);
+  if (pEnvi == NULL) {
+    // ::CoCreateInstance(CLSID_AnalyseEnvi, NULL, CLSCTX_INPROC_SERVER, IID_IAnalyseEnvi,
+    //                    (LPVOID*)&pEnvi);  // 得到接口指针
+    pEnvi->SetLeftTop(ppt);
+    pEnvi->SetCols(cols);
+    pEnvi->SetRows(rows);
+    pEnvi->SetCellSize(cellSize);
+    pEnvi->SetOutputCellSize(cellSize);
+  } else {
+    double_t rCellSize;
+    pEnvi->GetOutputCellSize(&rCellSize);
+    if (rCellSize == 0) {
+      pEnvi->SetOutputCellSize(cellSize);
     }
-    // todo: 就项目来说，像dem这种结果tiff图，土地利用类型等，一般只有一个波段。这里先break;
-    break;
+    pEnvi->GetCellSize(&rCellSize);
+    if (rCellSize == 0)
+      pEnvi->SetCellSize(cellSize);
+    else
+      cellSize = rCellSize;
+    OGRPoint* lt;
+    pEnvi->GetLeftTop(&lt);
+    if (lt != NULL) {
+      ppt = lt;
+    } else
+      pEnvi->SetLeftTop(ppt);
+    long rRows;
+    long rCols;
+    pEnvi->GetRows(&rRows);
+    pEnvi->GetCols(&rCols);
+    if (rCols == 0)
+      pEnvi->SetCols(cols);
+    else
+      cols = rCols;
+    if (rRows == 0)
+      pEnvi->SetRows(rows);
+    else
+      rows = rRows;
   }
-  if (dataTypeFlag) {
-    noData = bandNoData;
-  }
-  // 结束前关闭数据集对象
-  GDALClose(data);
-  GDALDestroy();
-  errorInfo = "栅格数据打开成功。";
+  xMin = ppt->getX();
+  yMax = ppt->getY();
+  pElevData = NULL;
+  OGRPoint* lt;
+  pEnvi->GetLeftTop(&lt);
+  pElevs->GetBlockDataByCoord(lt, cellSize, cols, rows, noData, &pElevData);
+  isInit = true;
   return true;
 }
 
 /** ---------------------CFieldStrengthAnalyse 场强分析类的实现 ---------------------------------*/
+CFieldStrengthAnalyse::CFieldStrengthAnalyse(void) {
+  hm = 2.5;
+  pData = nullptr;
+  offsetDB = 0;
+  needComputeAll = false;
+  subExtent[0] = 0;
+  subExtent[1] = 0;
+  subExtent[2] = 0;
+  subExtent[3] = 0;
+}
 bool CFieldStrengthAnalyse::FieldStrengthAnalyse(std::string savePath, RasterCreateFileType type) {
   errorInfo = "";
   long Count;
@@ -486,8 +575,366 @@ float_t CFreeSpaceAnalyse::GetRadiuValue(Station& stationInfo, std::vector<doubl
   float d = sqrt(pow(stationInfo.x - X, (double)2.0) + pow(stationInfo.y - Y, (double)2.0)
                  + pow(stationInfo.stationHeight + stationInfo.dem - Z - hm, (double)2.0));
   tfV = 32.4 + 20 * log10(d / 1000) + 20 * log10(stationInfo.frequency);
-  OGRPoint point(X, Y, Z);
   double_t dbLoss = CCombineAnalyse::GetRadiuValue(stationInfo, rsv, point);
   // return rsv.ReservedValues[0] - tfV - dbLoss;
   return rsv.front() - tfV - dbLoss;
+}
+
+//
+void CFreeSpaceAnalyse::FieldStrengthAnalyse(std::string outPutPath, RasterCreateFileType type,
+                                             bool* pVal) {
+  *pVal = CCombineAnalyse::FieldStrengthAnalyse(outPutPath, type);
+}
+
+/*--------------------------AnalyseEnvironment---------------------------------------*/
+AnalyseEnvironment::AnalyseEnvironment() {
+  // 初始化类的成员变量
+  leftTop = nullptr;
+  cellSize = 0.0;
+  cols = rows = 0;
+  outPutCellSize = 0.0;
+}
+// 重写接口对成员属性的get/set方法，对成员变量获取或设置值
+void AnalyseEnvironment::GetLeftTop(OGRPoint** point) { *point = leftTop; }
+void AnalyseEnvironment::SetLeftTop(OGRPoint* point) {
+  leftTop->setX(point->getX());
+  leftTop->setY(point->getY());
+  leftTop->setZ(point->getZ());
+}
+
+void AnalyseEnvironment::GetCellSize(double_t* cellSize) { *cellSize = this->cellSize; }
+void AnalyseEnvironment::SetCellSize(double_t cellSize) { this->cellSize = cellSize; }
+
+void AnalyseEnvironment::GetCols(long* cols) { *cols = this->cols; }
+void AnalyseEnvironment::SetCols(long cols) { this->cols = cols; }
+
+void AnalyseEnvironment::GetRows(long* rows) { *rows = this->rows; }
+void AnalyseEnvironment::SetRows(long rows) { this->rows = rows; }
+
+double_t AnalyseEnvironment::GetOutputCellSize(double_t* outPutCellSize) {
+  *outPutCellSize = this->outPutCellSize;
+}
+void AnalyseEnvironment::SetOutputCellSize(double_t outPutCellSize) {
+  this->outPutCellSize = outPutCellSize;
+}
+
+/* -------------------------------CStations的类定义-----------------------------------*/
+void CStations::AddStation(Station station) { this->stations.push_back(&station); }
+void CStations::GetCount(long* pVal) { *pVal = this->stations.size(); }
+void CStations::RemoveAt(long index) {
+  // 获取数组开始的迭代器
+  std::vector<spread::Station*>::iterator spec = this->stations.begin() + index;
+  this->stations.erase(spec);
+}
+
+void CStations::RemoveAll(void) { this->stations.clear(); }
+
+void CStations::GetItem(long index, Station* pVal) {
+  std::vector<spread::Station*>::iterator spec = this->stations.begin() + index;
+  *pVal = *this->stations.at(index);
+}
+
+void CStations::SetItem(long index, Station newVal) {
+  std::vector<spread::Station*>::iterator spec = this->stations.begin() + index;
+  this->stations.insert(spec, &newVal);
+}
+
+void CStations::PickHeightFromDEM(IGDALRasterReaderByPixel* pReader, bool* pVal) {
+  int Size = stations.size();
+  IGDALRasterProperties* pPro;
+  double CellSize;
+  pPro->GetCellSize(&CellSize);
+  OGREnvelope* rect;
+  pPro->GetExtent(&rect);
+  double XMin, YMin, XMax, YMax;
+  XMin = rect->MinX;
+  YMin = rect->MaxY;
+  XMax = rect->MaxX;
+  YMax = rect->MaxY;
+  long rows, cols;
+  pPro->GetRows(&rows);
+  pPro->GetCols(&cols);
+
+  // 获取指定栅格的dem值
+  float_t dV;
+  for (int k = 0; k < Size; k++) {
+    Station* para = stations.at(k);
+    int Col = (para->x - XMin) / CellSize;
+    int Row = (YMax - para->y) / CellSize;
+    if ((Col < 0) || (Col >= cols) || (Row < 0) || (Row >= rows))
+      para->dem = 0;
+    else {
+      pReader->GetPixelValue(Col, Row, &dV);
+      para->dem = dV;
+    }
+  }
+  // else {
+  //   for (int k = 0; k < Size; k++) {
+  //     Station* para = stations.at(k);
+  //     int Col = (para->x - XMin) / CellSize;
+  //     int Row = (YMax - para->y) / CellSize;
+  //     if ((Col < 0) || (Col >= cols) || (Row < 0) || (Row >= rows))
+  //       para->dem = 0;
+  //     else {
+  //       float dem;
+  //       pReader->GetPixelValue(Col, Row, &dem);
+  //       para->dem = dem;
+  //     }
+  //     pProgress->SetPos((float)k / Size * 100);
+  //   }
+  // }
+  *pVal = true;
+}
+
+/** ----------------------CGDALRasterReaderByPixel的定义------------------------*/
+GDALColorTable* CGDALRasterReaderByPixel::CreateColorTable() {
+  GDALColorTable* pColorTable = NULL;
+  if (poBand == NULL) {
+    return NULL;
+  }
+  GDALColorTable* gct = poBand->GetColorTable();
+  if (gct == NULL) {
+    return NULL;
+  }
+  pColorTable = new GDALColorTable(GPI_RGB);
+
+  int colorKinds = gct->GetColorEntryCount();
+  for (int k = 0; k < colorKinds; k++) {
+    GDALColorEntry gce;
+    gct->GetColorEntryAsRGB(k, &gce);
+    pColorTable->SetColorEntry(k, &gce);
+    // RGBColor nc;
+    // nc.r = gce.c1;
+    // nc.g = gce.c2;
+    // nc.b = gce.c3;
+    // pColorTable->AddColor(nc);
+  }
+  return pColorTable;
+}
+
+GDALRasterBand* CGDALRasterReaderByPixel::GetGDALBand() { return this->poBand; }
+
+void CGDALRasterReaderByPixel::OpenRaster(std::string lpszPathName, bool* pVal) {
+  if (poDataset != NULL) {
+    delete poDataset;
+  }
+  if (poSubDataset != NULL) {
+    delete poSubDataset;
+  }
+  poDataset = NULL;
+  poSubDataset = NULL;
+  rows = 0;
+  cols = 0;
+  cellSize = 0;
+  poBand = NULL;
+  // extent->PutCoord(0, 0, 0, 0);
+  extent->MaxX = 0;
+  extent->MaxY = 0;
+  extent->MinX = 0;
+  extent->MinY = 0;
+  metadata.clear();
+
+  // 打开栅格数据文件，获得Dataset对象
+  poDataset = (GDALDataset*)GDALOpen(lpszPathName.c_str(), GA_ReadOnly);
+  if (poDataset == NULL) {
+    *pVal = false;
+    return;
+  }
+  const char* papszMetadata = GDALGetDriverShortName((GDALDriverH)poDataset);
+  // The SUBDATASETS domain holds a list of child datasets. Normally this is used to provide
+  // pointers to a list of images stored within a single multi image file.
+  char** SUBDATASETS = GDALGetMetadata((GDALDatasetH)poDataset, "SUBDATASETS");
+  if (CSLCount(SUBDATASETS) == 0) {
+    rows = poDataset->GetRasterYSize();
+    cols = poDataset->GetRasterXSize();
+    double adfGeoTransform[6];
+    poDataset->GetGeoTransform(adfGeoTransform);
+    if (adfGeoTransform[5] > 0) {
+      adfGeoTransform[3] = adfGeoTransform[3] + adfGeoTransform[5] * rows;
+      adfGeoTransform[5] = -adfGeoTransform[5];
+    }
+    extent->MinX = adfGeoTransform[0];
+    extent->MaxX = adfGeoTransform[0] + cols * adfGeoTransform[1];
+    extent->MinY = adfGeoTransform[3] + rows * adfGeoTransform[5];
+    extent->MaxY = adfGeoTransform[3];
+    // extent->PutCoord(adfGeoTransform[0], adfGeoTransform[3],
+    //                  adfGeoTransform[0] + cols * adfGeoTransform[1],
+    //                  adfGeoTransform[3] + adfGeoTransform[5] * rows);
+    cellSize = fabs(adfGeoTransform[1]);
+  } else {
+    for (int i = 0; SUBDATASETS[i] != NULL; i++) {
+      std::string tmpstr = SUBDATASETS[i];
+      // 将每个SUBDATASETS按照等号分割
+      int position = tmpstr.find("=", 0);
+      // tmpstr = tmpstr.Right(tmpstr.GetLength() - tmpstr.Find("=") - 1);
+      // 取等号右边的属性值
+      metadata.push_back(tmpstr.substr(position));
+    }
+  }
+  *pVal = true;
+}
+
+void CGDALRasterReaderByPixel::GetPixelValue(long col, long row, float_t* data) {
+  if (poBand == NULL) {
+    *data = -INT_MAX;
+    return;
+  }
+  poBand->RasterIO(GF_Read, col, row, 1, 1, data, 1, 1, GDT_Float32, 0, 0);
+}
+
+void CGDALRasterReaderByPixel::SetRasterBand(PBand_T pBand, bool* pVal) {
+  poBand = NULL;
+  if (poDataset == NULL) {
+    *pVal = false;
+    return;
+  }
+  if (metadata.size() == 0) {
+    poBand = poDataset->GetRasterBand(pBand.bandNumber);
+  } else {
+    rows = 0;
+    cols = 0;
+    cellSize = 0;
+    // extent->PutCoord(0, 0, 0, 0);
+    extent->MaxX = 0;
+    extent->MaxY = 0;
+    extent->MinX = 0;
+    extent->MinY = 0;
+
+    if (poSubDataset != NULL) {
+      delete poSubDataset;
+    }
+    poSubDataset = NULL;
+    // _bstr_t path = vr.bstrVal;
+    // char* cpath = path;
+
+    poSubDataset = (GDALDataset*)GDALOpen(pBand.rasterPath, GA_ReadOnly);
+    if (poSubDataset == NULL) {
+      *pVal = false;
+      return;
+    }
+    rows = poSubDataset->GetRasterYSize();
+    cols = poSubDataset->GetRasterXSize();
+    double adfGeoTransform[6];
+    poSubDataset->GetGeoTransform(adfGeoTransform);
+    if (adfGeoTransform[5] > 0) {
+      adfGeoTransform[3] = adfGeoTransform[3] + adfGeoTransform[5] * rows;
+      adfGeoTransform[5] = -adfGeoTransform[5];
+    }
+    // extent->PutCoord(adfGeoTransform[0], adfGeoTransform[3],
+    //                  adfGeoTransform[0] + cols * adfGeoTransform[1],
+    //                  adfGeoTransform[3] + adfGeoTransform[5] * rows);
+    extent->MinX = adfGeoTransform[0];
+    extent->MaxX = adfGeoTransform[0] + cols * adfGeoTransform[1];
+    extent->MinY = adfGeoTransform[3] + rows * adfGeoTransform[5];
+    extent->MaxY = adfGeoTransform[3];
+    cellSize = fabs(adfGeoTransform[1]);
+    poBand = poSubDataset->GetRasterBand(1);
+  }
+  *pVal = true;
+  return;
+}
+
+void CGDALRasterReaderByPixel::GetPathName(std::string* pVal) { *pVal = this->lpszPathName; }
+
+void CGDALRasterReaderByPixel::GetCurrentBand(PBand_T* pVal) { *pVal = pBand; }
+
+void CGDALRasterReaderByPixel::GetRows(long* pVal) { *pVal = this->rows; }
+void CGDALRasterReaderByPixel::GetCols(long* pVal) { *pVal = this->cols; }
+
+void CGDALRasterReaderByPixel::GetExtent(OGREnvelope** pVal) { *pVal = this->extent; }
+void CGDALRasterReaderByPixel::GetCellSize(double_t* pVal) { *pVal = this->cellSize; }
+
+void CGDALRasterReaderByPixel::GetBandCount(long* pVal) {
+  if (poDataset == NULL) {
+    *pVal = 0;
+    return;
+  } else if (metadata.size() == 0) {
+    *pVal = poDataset->GetRasterCount();
+  } else {
+    if (poSubDataset == NULL) {
+      *pVal = 0;
+      return;
+    } else {
+      *pVal = 1;
+    }
+  }
+  return;
+}
+void CGDALRasterReaderByPixel::GetNoData(double_t* pVal) {
+  if (poBand == NULL) {
+    *pVal = 0;
+  } else {
+    *pVal = poBand->GetNoDataValue();
+  }
+  return;
+}
+void CGDALRasterReaderByPixel::SetNoData(double_t pVal) {
+  if (poBand != NULL) {
+    poBand->SetNoDataValue(pVal);
+  }
+}
+
+void CGDALRasterReaderByPixel::GetMinMax(bool bApproxOK, double_t* min, double_t* max, bool* pVal) {
+  if (poBand == NULL) {
+    *pVal = false;
+    return;
+  }
+
+  double_t mean, stddev;
+  CPLErr pErr = poBand->GetStatistics(bApproxOK, true, min, max, &mean, &stddev);
+  if (pErr == CE_None)
+    *pVal = true;
+  else
+    *pVal = false;
+  return;
+}
+
+void CGDALRasterReaderByPixel::ComputeRasterMinMax(bool bApproxOK, double_t* min, double_t* max,
+                                                   bool* pVal) {
+  if (poBand == NULL) {
+    *pVal = false;
+    return;
+  }
+  double dV[2];
+  CPLErr pErr = poBand->ComputeRasterMinMax(bApproxOK, dV);
+  if (pErr == CE_None) {
+    *min = dV[0];
+    *max = dV[1];
+    *pVal = true;
+  } else
+    *pVal = false;
+  return;
+}
+
+void CGDALRasterReaderByPixel::ComputeStatistics(bool bApproxOK, double_t* min, double_t* max,
+                                                 double_t* mean, double_t* stddev, bool* pVal) {
+  if (poBand == NULL) {
+    *pVal = false;
+    return;
+  }
+  CPLErr pErr = poBand->ComputeStatistics(bApproxOK, min, max, mean, stddev, NULL, NULL);
+  if (pErr == CE_None)
+    *pVal = true;
+  else
+    *pVal = false;
+  return;
+}
+
+// 获取
+void CGDALRasterReaderByPixel::GetSpatialReference(OGRSpatialReference** pVal) {
+  OGRSpatialReference* pNew;
+  *pVal = pNew;
+  GDALDataset* pDataset;
+  if (poSubDataset != NULL) {
+    pDataset = poSubDataset;
+  } else
+    pDataset = poDataset;
+  if (pDataset == NULL) {
+    return;
+  }
+  const char* info = pDataset->GetProjectionRef();
+  if (info != NULL) {
+    pNew->importFromWkt(info);
+  }
+  return;
 }
