@@ -13,11 +13,16 @@ TEST_SUITE("空间数据管理的测试用例") {
   //   GDALDataset* result = RasterDataSource::OpenRaster("F:\\work\\spreadmodel\\test.tif");
   // }
 
-  TEST_CASE("InitEnvironment测试") {
+  TEST_CASE("自由传播模型调用测试") {
     using namespace spread;
-    std::string path = "/home/shigp/data/test.tif"; // "/home/shigp/Downloads/test.tif"; // F:\work\spreadmodel
+    std::string path = "/home/shigp/data/test.tif";
     CSpreadAnalyse sp = CSpreadAnalyse();
     sp.elevationPath = path;
     sp.InitEnvironment();
+
+    CFreeSpaceAnalyse analyse;
+    bool flag;
+    analyse.FieldStrengthAnalyse("/home/shigp/data", RasterCreateFileType::rcftTiff, &flag);
+    std::cout << "result is:" << flag << std::endl;
   }
 }

@@ -2,11 +2,9 @@
 #include <spread/spread.h>
 
 #include <iostream>
-
-#include "spread/spatidatamanager.h"
+#include <vector>
 
 using namespace spread;
-using namespace spatidatamanager;
 
 /*** --------------------- 所有场强分析算法的基类，实现 ------------------------------- */
 CSpreadAnalyse::~CSpreadAnalyse(){};
@@ -68,19 +66,21 @@ bool CSpreadAnalyse::InitEnvironment() {
   // pBand.intVal = 1;
   int pBand = 1;
   // 设置栅格的波段，默认第一个波段
-  pElevs->SetRasterBand(pBand, &IsOk);
+  PBand_T band;
+  band.bandNumber = pBand;
+  pElevs->SetRasterBand(band, &IsOk);
   if (!IsOk) {
     errorInfo = "打开高程数据失败";
     return false;
   }
-  IGDALRasterProperties* pPro;
+  IGDALRasterProperties* pPro = nullptr;
   // pElevs->QueryInterface(IID_IGDALRasterProperties, (void**)&pPro);
   pPro->GetNoData(&noData);
   pPro->GetCols(&cols);
   pPro->GetRows(&rows);
   OGREnvelope* Extent;
   pPro->GetExtent(&Extent);
-  OGRPoint* ppt;
+  OGRPoint* ppt = nullptr;
   // ::CoCreateInstance(CLSID_PointDef, NULL, CLSCTX_INPROC_SERVER, IID_IPoint, (void**)&ppt);
   double_t left, top;
   // Extent->GetLeft(&left);
@@ -140,7 +140,7 @@ bool CSpreadAnalyse::InitEnvironment() {
 }
 
 /** ---------------------CFieldStrengthAnalyse 场强分析类的实现 ---------------------------------*/
-CFieldStrengthAnalyse::CFieldStrengthAnalyse(void) {
+CFieldStrengthAnalyse::CFieldStrengthAnalyse() {
   hm = 2.5;
   pData = nullptr;
   offsetDB = 0;
@@ -190,14 +190,15 @@ bool CFieldStrengthAnalyse::FieldStrengthAnalyse(std::string savePath, RasterCre
   //   errorInfo = "保存数据失败, 可能是场强阈值太大覆盖范围为0或目标路径有误";
   //   return false;
   // }
+  // 为了避免gcc未使用变量检测
+  std::cout << "inputpath: " << savePath << std::endl;
+  std::cout << "output raster type: " << type << std::endl;
   return true;
 }
 
-void CFieldStrengthAnalyse::ComputeOneStation(Station& para, std::string progress = "") {
-  if (progress.empty()) {
-    progress = para.name;
-    progress = "计算" + GetModelName() + "场强-" + progress;
-  }
+void CFieldStrengthAnalyse::ComputeOneStation(Station& para) {
+  std::cout << "计算" + GetModelName() + "场强-" << std::endl;
+
   std::vector<double_t> rsv;
   PrepareReservedValues(para, rsv);
   ComputeOneStationByExtent(para, rsv);
@@ -219,8 +220,8 @@ bool CFieldStrengthAnalyse::ComputeOneStationByExtent(Station& para, std::vector
   else if (Row >= rows)
     Row = rows - 1;
   // 分析范围默认为DEM范围
-  int tempextent[4] = {0, cols, 0, rows};
-  int* pextent = tempextent;
+  long int tempextent[4] = {0, cols, 0, rows};
+  long int* pextent = tempextent;
   int sr = 0;
   int er = MaxRadius;
   // 计算分析范围所属行列号范围
@@ -429,7 +430,6 @@ bool CFieldStrengthAnalyse::ComputeOneStationByExtent(Station& para, std::vector
         Posi += cols;
       }
     }
-
     if (!needComputeAll && !HasCompute) {
       break;
     }
@@ -437,9 +437,9 @@ bool CFieldStrengthAnalyse::ComputeOneStationByExtent(Station& para, std::vector
   return true;
 }
 
-int* CFieldStrengthAnalyse::GetSubRowCol(double xmin, double ymin, double xmax, double ymax) {
+long int* CFieldStrengthAnalyse::GetSubRowCol(double xmin, double ymin, double xmax, double ymax) {
   // 注意：在堆上分配了内存，注意释放
-  int* result = new int[4];
+  long int* result = new long int[4];
   int colmin, rowmin, colmax, rowmax;
   colmin = (xmin - xMin) / cellSize;
   colmax = (xmax - xMin) / cellSize;
@@ -539,24 +539,76 @@ int* CFieldStrengthAnalyse::GetSubRowCol(double xmin, double ymin, double xmax, 
 
 /*** ----------------------CCombineAnalyse 混合传播模型的实现------------------------------ */
 
+bool CCombineAnalyse::FieldStrengthAnalyse(std::string savePath, RasterCreateFileType type) {
+  bool isOk = CFieldStrengthAnalyse::FieldStrengthAnalyse(savePath, type);
+  return isOk;
+}
+// 重写接口方法
 float_t CCombineAnalyse::GetRadiuValue(Station& stationInfo, std::vector<double_t>& rsv,
-                                       OGRPoint* point) {
+                                       OGRPoint& point) {
   // 可能有多个绕射模型，所以els中可能有多个不同的绕射模型。
-  double_t X = point->getX();
-  double_t Y = point->getY();
-  double_t Z = point->getZ();
+  double_t X = point.getX();
+  double_t Y = point.getY();
+  double_t Z = point.getZ();
   double_t allNum = 0;
+  double_t loss = 0;
   for (int k = els.size() - 1; k >= 0; k--) {
-    double_t loss;
-    els.at(k)->GetDBLoss(stationInfo, X, Y, Z, &loss);
+    OGRPoint point;
+    point.setX(X);
+    point.setY(Y);
+    point.setZ(Z);
+    loss = els.at(k)->GetDBLoss(stationInfo, point);
     allNum += loss;
   }
   return allNum;
 }
 
-bool CCombineAnalyse::FieldStrengthAnalyse(std::string savePath, RasterCreateFileType type) {
-  bool isOk = CFieldStrengthAnalyse::FieldStrengthAnalyse(savePath, type);
-  return isOk;
+std::string CCombineAnalyse::GetModelName() { return "CombineAnalyse"; }
+
+float_t CCombineAnalyse::GetRadiuValueRev(Station& para, std::vector<double_t>& rsv,
+                                          OGRPoint& point) {
+  double AllNum = 0;
+  for (int k = els.size() - 1; k >= 0; k--) {
+    double loss;
+    loss = els.at(k)->GetDBLossRev(para, point);
+    AllNum += loss;
+  }
+  return AllNum;
+}
+bool CCombineAnalyse::PrepareOtherData() {
+  for (int k = 0; k < (int)otherPaths.size(); k++) {
+    bool IsOk;
+    PBand_T pBand;
+    pBand.bandNumber = 1;
+    OGRPoint* lt;
+    otherReaders[k]->OpenRaster(otherPaths[k], &IsOk);
+    if (!IsOk) {
+      errorInfo = "打开" + otherNames[k] + "失败";
+      return false;
+    }
+    otherReaders[k]->SetRasterBand(pBand, &IsOk);
+    if (!IsOk) {
+      errorInfo = "打开" + otherNames[k] + "失败";
+      return false;
+    }
+    pEnvi->GetLeftTop(&lt);
+
+    IFileFloatArray* pArray;
+    otherReaders[k]->GetBlockDataByCoord(lt, cellSize, cols, rows, noData, &pArray);
+    if (otherDatas.at(k) != NULL) {
+      std::vector<IFileFloatArray*>::iterator pos = otherDatas.begin() + k;
+      otherDatas.erase(pos);
+    }
+    otherDatas.push_back(pArray);
+    if (pArray == NULL) {
+      errorInfo = "打开" + otherNames[k] + "失败";
+      return false;
+    }
+  }
+  for (int k = els.size() - 1; k >= 0; k--) {
+    els.at(k)->prepareAnalyseEnvi();
+  }
+  return true;
 }
 
 /*** ----------------------CFreeSpaceAnalyse 自由空间传播模型的实现------------------------------ */
@@ -567,11 +619,11 @@ bool CCombineAnalyse::FieldStrengthAnalyse(std::string savePath, RasterCreateFil
 /// @param point 要计算的点坐标
 /// @return 返回point位置处的场强
 float_t CFreeSpaceAnalyse::GetRadiuValue(Station& stationInfo, std::vector<double_t>& rsv,
-                                         OGRPoint* point) {
+                                         OGRPoint& point) {
   float_t tfV;
-  double_t X = point->getX();
-  double_t Y = point->getY();
-  double_t Z = point->getZ();
+  double_t X = point.getX();
+  double_t Y = point.getY();
+  double_t Z = point.getZ();
   float d = sqrt(pow(stationInfo.x - X, (double)2.0) + pow(stationInfo.y - Y, (double)2.0)
                  + pow(stationInfo.stationHeight + stationInfo.dem - Z - hm, (double)2.0));
   tfV = 32.4 + 20 * log10(d / 1000) + 20 * log10(stationInfo.frequency);
@@ -585,6 +637,11 @@ void CFreeSpaceAnalyse::FieldStrengthAnalyse(std::string outPutPath, RasterCreat
                                              bool* pVal) {
   *pVal = CCombineAnalyse::FieldStrengthAnalyse(outPutPath, type);
 }
+
+// void CFreeSpaceAnalyse::FieldStrengthAnalyse(std::string savePath, RasterCreateFileType type,
+//                                              bool* pVal) {
+//   *pVal = CCombineAnalyse::FieldStrengthAnalyse(savePath, type);
+// }
 
 /*--------------------------AnalyseEnvironment---------------------------------------*/
 AnalyseEnvironment::AnalyseEnvironment() {
@@ -611,7 +668,7 @@ void AnalyseEnvironment::SetCols(long cols) { this->cols = cols; }
 void AnalyseEnvironment::GetRows(long* rows) { *rows = this->rows; }
 void AnalyseEnvironment::SetRows(long rows) { this->rows = rows; }
 
-double_t AnalyseEnvironment::GetOutputCellSize(double_t* outPutCellSize) {
+void AnalyseEnvironment::GetOutputCellSize(double_t* outPutCellSize) {
   *outPutCellSize = this->outPutCellSize;
 }
 void AnalyseEnvironment::SetOutputCellSize(double_t outPutCellSize) {
@@ -630,7 +687,7 @@ void CStations::RemoveAt(long index) {
 void CStations::RemoveAll(void) { this->stations.clear(); }
 
 void CStations::GetItem(long index, Station* pVal) {
-  std::vector<spread::Station*>::iterator spec = this->stations.begin() + index;
+  // std::vector<spread::Station*>::iterator spec = this->stations.begin() + index;
   *pVal = *this->stations.at(index);
 }
 
@@ -641,15 +698,17 @@ void CStations::SetItem(long index, Station newVal) {
 
 void CStations::PickHeightFromDEM(IGDALRasterReaderByPixel* pReader, bool* pVal) {
   int Size = stations.size();
-  IGDALRasterProperties* pPro;
+  IGDALRasterProperties* pPro = nullptr;
   double CellSize;
   pPro->GetCellSize(&CellSize);
   OGREnvelope* rect;
   pPro->GetExtent(&rect);
-  double XMin, YMin, XMax, YMax;
+  //
+  // double XMin, YMin, XMax, YMax;
+  double XMin, YMax;
   XMin = rect->MinX;
-  YMin = rect->MaxY;
-  XMax = rect->MaxX;
+  // YMin = rect->MaxY;
+  // XMax = rect->MaxX;
   YMax = rect->MaxY;
   long rows, cols;
   pPro->GetRows(&rows);
@@ -711,9 +770,7 @@ GDALColorTable* CGDALRasterReaderByPixel::CreateColorTable() {
   }
   return pColorTable;
 }
-
 GDALRasterBand* CGDALRasterReaderByPixel::GetGDALBand() { return this->poBand; }
-
 void CGDALRasterReaderByPixel::OpenRaster(std::string lpszPathName, bool* pVal) {
   if (poDataset != NULL) {
     delete poDataset;
@@ -740,7 +797,7 @@ void CGDALRasterReaderByPixel::OpenRaster(std::string lpszPathName, bool* pVal) 
     *pVal = false;
     return;
   }
-  const char* papszMetadata = GDALGetDriverShortName((GDALDriverH)poDataset);
+  // const char* papszMetadata = GDALGetDriverShortName((GDALDriverH)poDataset);
   // The SUBDATASETS domain holds a list of child datasets. Normally this is used to provide
   // pointers to a list of images stored within a single multi image file.
   char** SUBDATASETS = GDALGetMetadata((GDALDatasetH)poDataset, "SUBDATASETS");
@@ -773,15 +830,14 @@ void CGDALRasterReaderByPixel::OpenRaster(std::string lpszPathName, bool* pVal) 
   }
   *pVal = true;
 }
-
 void CGDALRasterReaderByPixel::GetPixelValue(long col, long row, float_t* data) {
   if (poBand == NULL) {
     *data = -INT_MAX;
     return;
   }
-  poBand->RasterIO(GF_Read, col, row, 1, 1, data, 1, 1, GDT_Float32, 0, 0);
+  CPLErr errorNumber = poBand->RasterIO(GF_Read, col, row, 1, 1, data, 1, 1, GDT_Float32, 0, 0);
+  std::cout << "获取结果标志：" << errorNumber << std::endl;
 }
-
 void CGDALRasterReaderByPixel::SetRasterBand(PBand_T pBand, bool* pVal) {
   poBand = NULL;
   if (poDataset == NULL) {
@@ -833,17 +889,12 @@ void CGDALRasterReaderByPixel::SetRasterBand(PBand_T pBand, bool* pVal) {
   *pVal = true;
   return;
 }
-
 void CGDALRasterReaderByPixel::GetPathName(std::string* pVal) { *pVal = this->lpszPathName; }
-
 void CGDALRasterReaderByPixel::GetCurrentBand(PBand_T* pVal) { *pVal = pBand; }
-
 void CGDALRasterReaderByPixel::GetRows(long* pVal) { *pVal = this->rows; }
 void CGDALRasterReaderByPixel::GetCols(long* pVal) { *pVal = this->cols; }
-
 void CGDALRasterReaderByPixel::GetExtent(OGREnvelope** pVal) { *pVal = this->extent; }
 void CGDALRasterReaderByPixel::GetCellSize(double_t* pVal) { *pVal = this->cellSize; }
-
 void CGDALRasterReaderByPixel::GetBandCount(long* pVal) {
   if (poDataset == NULL) {
     *pVal = 0;
@@ -873,7 +924,6 @@ void CGDALRasterReaderByPixel::SetNoData(double_t pVal) {
     poBand->SetNoDataValue(pVal);
   }
 }
-
 void CGDALRasterReaderByPixel::GetMinMax(bool bApproxOK, double_t* min, double_t* max, bool* pVal) {
   if (poBand == NULL) {
     *pVal = false;
@@ -888,7 +938,6 @@ void CGDALRasterReaderByPixel::GetMinMax(bool bApproxOK, double_t* min, double_t
     *pVal = false;
   return;
 }
-
 void CGDALRasterReaderByPixel::ComputeRasterMinMax(bool bApproxOK, double_t* min, double_t* max,
                                                    bool* pVal) {
   if (poBand == NULL) {
@@ -905,7 +954,6 @@ void CGDALRasterReaderByPixel::ComputeRasterMinMax(bool bApproxOK, double_t* min
     *pVal = false;
   return;
 }
-
 void CGDALRasterReaderByPixel::ComputeStatistics(bool bApproxOK, double_t* min, double_t* max,
                                                  double_t* mean, double_t* stddev, bool* pVal) {
   if (poBand == NULL) {
@@ -919,10 +967,9 @@ void CGDALRasterReaderByPixel::ComputeStatistics(bool bApproxOK, double_t* min, 
     *pVal = false;
   return;
 }
-
-// 获取
+// 获取参考系
 void CGDALRasterReaderByPixel::GetSpatialReference(OGRSpatialReference** pVal) {
-  OGRSpatialReference* pNew;
+  OGRSpatialReference* pNew = nullptr;
   *pVal = pNew;
   GDALDataset* pDataset;
   if (poSubDataset != NULL) {
@@ -935,6 +982,47 @@ void CGDALRasterReaderByPixel::GetSpatialReference(OGRSpatialReference** pVal) {
   const char* info = pDataset->GetProjectionRef();
   if (info != NULL) {
     pNew->importFromWkt(info);
+  }
+  return;
+}
+void CGDALRasterReaderByPixel::GetDataType(RasterDataType* pVal) {
+  if (poBand == NULL) {
+    *pVal = RasterDataType::rdtUnknown;
+    return;
+  }
+  *pVal = (RasterDataType)poBand->GetRasterDataType();
+  return;
+}
+void CGDALRasterReaderByPixel::GetMetaData(std::vector<std::string>** pVal) {
+  if (metadata.size() == 0) {
+    *pVal = NULL;
+    return;
+  }
+  for (long k = 0; k < (int)metadata.size(); k++) {
+    std::string sV = metadata.at(k);
+    (*pVal)->push_back(sV);
+  }
+  return;
+}
+void CGDALRasterReaderByPixel::GetColorTable(std::vector<GDALColorTable>** pVal) {
+  if (poBand == NULL) {
+    *pVal = NULL;
+    return;
+  }
+  GDALColorTable* gct = poBand->GetColorTable();
+  if (gct == NULL) {
+    *pVal = NULL;
+    return;
+  }
+  int size = gct->GetColorEntryCount();
+  // 遍历全部波段的颜色实体
+  for (long k = 0; k < size; k++) {
+    GDALColorEntry gce;
+    gct->GetColorEntryAsRGB(k, &gce);
+    // 拿到每个波段中的colorentry，保存到数组中
+    GDALColorTable table;
+    table.SetColorEntry(k, &gce);
+    (*pVal)->push_back(table);
   }
   return;
 }
