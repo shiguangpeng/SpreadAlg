@@ -7,7 +7,6 @@
 using namespace spread;
 
 /*** --------------------- 所有场强分析算法的基类，实现 ------------------------------- */
-CSpreadAnalyse::~CSpreadAnalyse(){};
 bool CSpreadAnalyse::InitEnvironment() {
   // // 通过打开的栅格数据，初始化类相关成员。
   // const char* path = elevationPath.c_str();
@@ -137,6 +136,14 @@ bool CSpreadAnalyse::InitEnvironment() {
   pElevs->GetBlockDataByCoord(lt, cellSize, cols, rows, noData, &pElevData);
   isInit = true;
   return true;
+}
+/*-----------------------------------CRect的实现-----------------------------------------------*/
+CRect::CRect() = default;
+CRect::CRect(int left, int top, int right, int bottom) {
+  this->left = left;
+  this->top = top;
+  this->bottom = bottom;
+  this->right = right;
 }
 
 /** ---------------------CFieldStrengthAnalyse 场强分析类的实现 ---------------------------------*/

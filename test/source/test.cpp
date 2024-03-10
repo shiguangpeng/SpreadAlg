@@ -1,7 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include <doctest/doctest.h>
-#include <spread/spatidatamanager.h>
+// #include <spread/spatidatamanager.h>
 #include <spread/spread.h>
 
 #include <string>

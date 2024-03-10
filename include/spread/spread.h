@@ -308,7 +308,7 @@ namespace spread {
   class CSpreadAnalyse {
   public:
     CSpreadAnalyse() = default;
-    virtual ~CSpreadAnalyse();
+    // virtual ~CSpreadAnalyse();
 
   public:
     /**
@@ -396,7 +396,7 @@ namespace spread {
 
   public:
     CFieldStrengthAnalyse();
-    virtual ~CFieldStrengthAnalyse() = default;
+    // virtual ~CFieldStrengthAnalyse() = default;
     // 场强分析算法的调用入口，每个场强分析类都有自己的场强分析调用入口，重定义。
     bool FieldStrengthAnalyse(std::string savePath, RasterCreateFileType type);
 
