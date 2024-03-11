@@ -8,6 +8,15 @@ using namespace spread;
 
 /* -----------------------------各个类的析构函数实现------------------------------------*/
 // CSpreadAnalyse::~CSpreadAnalyse() = default;
+CSpreadAnalyse::CSpreadAnalyse() {
+  pEnvi = nullptr;
+  errorInfo = "";
+  // 初始化pElevs对象
+  pElevs = nullptr;
+  pElevData = nullptr;
+  isInit = false;
+  otherDataPreload = false;
+}
 
 /*** --------------------- 所有场强分析算法的基类，实现 ------------------------------- */
 bool CSpreadAnalyse::InitEnvironment() {
@@ -83,7 +92,7 @@ bool CSpreadAnalyse::InitEnvironment() {
   OGREnvelope* Extent;
   pPro->GetExtent(&Extent);
   OGRPoint* ppt = nullptr;
-  // ::CoCreateInstance(CLSID_PointDef, NULL, CLSCTX_INPROC_SERVER, IID_IPoint, (void**)&ppt);
+  // ::CoCreateInstance(CLSID_PointDef, nullptr, CLSCTX_INPROC_SERVER, IID_IPoint, (void**)&ppt);
   double_t left, top;
   // Extent->GetLeft(&left);
   // Extent->GetTop(&top);
@@ -93,8 +102,8 @@ bool CSpreadAnalyse::InitEnvironment() {
   ppt->setX(top);
   ppt->setY(left);
   pPro->GetCellSize(&cellSize);
-  if (pEnvi == NULL) {
-    // ::CoCreateInstance(CLSID_AnalyseEnvi, NULL, CLSCTX_INPROC_SERVER, IID_IAnalyseEnvi,
+  if (pEnvi == nullptr) {
+    // ::CoCreateInstance(CLSID_AnalyseEnvi, nullptr, CLSCTX_INPROC_SERVER, IID_IAnalyseEnvi,
     //                    (LPVOID*)&pEnvi);  // 得到接口指针
     pEnvi->SetLeftTop(ppt);
     pEnvi->SetCols(cols);
@@ -114,7 +123,7 @@ bool CSpreadAnalyse::InitEnvironment() {
       cellSize = rCellSize;
     OGRPoint* lt;
     pEnvi->GetLeftTop(&lt);
-    if (lt != NULL) {
+    if (lt != nullptr) {
       ppt = lt;
     } else
       pEnvi->SetLeftTop(ppt);
@@ -133,7 +142,7 @@ bool CSpreadAnalyse::InitEnvironment() {
   }
   xMin = ppt->getX();
   yMax = ppt->getY();
-  pElevData = NULL;
+  pElevData = nullptr;
   OGRPoint* lt;
   pEnvi->GetLeftTop(&lt);
   pElevs->GetBlockDataByCoord(lt, cellSize, cols, rows, noData, &pElevData);
@@ -178,7 +187,7 @@ bool CFieldStrengthAnalyse::FieldStrengthAnalyse(std::string savePath, RasterCre
   }
 
   // COM组件的写法，要将接口的引用计数减1，当减为0时，会使用delete将该接口（struct）释放
-  // if (pData != NULL) {
+  // if (pData != nullptr) {
   //   pData->Release();
   // }
 
@@ -483,9 +492,8 @@ long int* CFieldStrengthAnalyse::GetSubRowCol(double xmin, double ymin, double x
 //   }
 //   if ((l > r) || (t > b)) return false;
 //   IPoint* LeftTop;
-//   ::CoCreateInstance(CLSID_PointDef, NULL, CLSCTX_INPROC_SERVER, IID_IPoint, (LPVOID*)&LeftTop);
-//   LeftTop->put_X(XMin + l * CellSize);
-//   LeftTop->put_Y(YMax - t * CellSize);
+//   ::CoCreateInstance(CLSID_PointDef, nullptr, CLSCTX_INPROC_SERVER, IID_IPoint,
+//   (LPVOID*)&LeftTop); LeftTop->put_X(XMin + l * CellSize); LeftTop->put_Y(YMax - t * CellSize);
 //   int rCols;
 //   int rRows;
 //   double_t OutputCellSize;
@@ -498,9 +506,10 @@ long int* CFieldStrengthAnalyse::GetSubRowCol(double xmin, double ymin, double x
 //   pElevs->QueryInterface(IID_IGDALRasterProperties, (void**)&pPro);
 //   pPro->Release();
 //   pPro->get_SpatialReference(&pSpatial);
-//   ::CoCreateInstance(CLSID_GDALRasterCreator, NULL, CLSCTX_INPROC_SERVER, IID_IGDALRasterCreator,
+//   ::CoCreateInstance(CLSID_GDALRasterCreator, nullptr, CLSCTX_INPROC_SERVER,
+//   IID_IGDALRasterCreator,
 //                      (LPVOID*)&pCreator);
-//   if (progress != NULL) progress->BeginProgress(CComBSTR("创建结果图层"));
+//   if (progress != nullptr) progress->BeginProgress(CComBSTR("创建结果图层"));
 //   VARIANT_BOOL IsOk;
 //   pCreator->CreateRaster(CComBSTR(OutPath), LeftTop, rCols, rRows, OutputCellSize, type, dtype,
 //   1,
@@ -513,7 +522,7 @@ long int* CFieldStrengthAnalyse::GetSubRowCol(double xmin, double ymin, double x
 //     return false;
 //   }
 //   IGDALRasterSaverByFileArray* pSaver;
-//   ::CoCreateInstance(CLSID_GDALRasterSaverByFileArray, NULL, CLSCTX_INPROC_SERVER,
+//   ::CoCreateInstance(CLSID_GDALRasterSaverByFileArray, nullptr, CLSCTX_INPROC_SERVER,
 //                      IID_IGDALRasterSaverByFileArray, (LPVOID*)&pSaver);
 //   pSaver->OpenRaster(CComBSTR(OutPath), &IsOk);
 //   if (!IsOk) {
@@ -608,12 +617,12 @@ bool CCombineAnalyse::PrepareOtherData() {
 
     IFileFloatArray* pArray;
     otherReaders[k]->GetBlockDataByCoord(lt, cellSize, cols, rows, noData, &pArray);
-    if (otherDatas.at(k) != NULL) {
+    if (otherDatas.at(k) != nullptr) {
       std::vector<IFileFloatArray*>::iterator pos = otherDatas.begin() + k;
       otherDatas.erase(pos);
     }
     otherDatas.push_back(pArray);
-    if (pArray == NULL) {
+    if (pArray == nullptr) {
       errorInfo = "打开" + otherNames[k] + "失败";
       return false;
     }
@@ -765,13 +774,13 @@ void CStations::PickHeightFromDEM(IGDALRasterReaderByPixel* pReader, bool* pVal)
 
 /** ----------------------CGDALRasterReaderByPixel的定义------------------------*/
 GDALColorTable* CGDALRasterReaderByPixel::CreateColorTable() {
-  GDALColorTable* pColorTable = NULL;
-  if (poBand == NULL) {
-    return NULL;
+  GDALColorTable* pColorTable = nullptr;
+  if (poBand == nullptr) {
+    return nullptr;
   }
   GDALColorTable* gct = poBand->GetColorTable();
-  if (gct == NULL) {
-    return NULL;
+  if (gct == nullptr) {
+    return nullptr;
   }
   pColorTable = new GDALColorTable(GPI_RGB);
 
@@ -790,18 +799,18 @@ GDALColorTable* CGDALRasterReaderByPixel::CreateColorTable() {
 }
 GDALRasterBand* CGDALRasterReaderByPixel::GetGDALBand() { return this->poBand; }
 void CGDALRasterReaderByPixel::OpenRaster(std::string lpszPathName, bool* pVal) {
-  if (poDataset != NULL) {
+  if (poDataset != nullptr) {
     delete poDataset;
   }
-  if (poSubDataset != NULL) {
+  if (poSubDataset != nullptr) {
     delete poSubDataset;
   }
-  poDataset = NULL;
-  poSubDataset = NULL;
+  poDataset = nullptr;
+  poSubDataset = nullptr;
   rows = 0;
   cols = 0;
   cellSize = 0;
-  poBand = NULL;
+  poBand = nullptr;
   // extent->PutCoord(0, 0, 0, 0);
   extent->MaxX = 0;
   extent->MaxY = 0;
@@ -811,7 +820,7 @@ void CGDALRasterReaderByPixel::OpenRaster(std::string lpszPathName, bool* pVal) 
 
   // 打开栅格数据文件，获得Dataset对象
   poDataset = (GDALDataset*)GDALOpen(lpszPathName.c_str(), GA_ReadOnly);
-  if (poDataset == NULL) {
+  if (poDataset == nullptr) {
     *pVal = false;
     return;
   }
@@ -837,7 +846,7 @@ void CGDALRasterReaderByPixel::OpenRaster(std::string lpszPathName, bool* pVal) 
     //                  adfGeoTransform[3] + adfGeoTransform[5] * rows);
     cellSize = fabs(adfGeoTransform[1]);
   } else {
-    for (int i = 0; SUBDATASETS[i] != NULL; i++) {
+    for (int i = 0; SUBDATASETS[i] != nullptr; i++) {
       std::string tmpstr = SUBDATASETS[i];
       // 将每个SUBDATASETS按照等号分割
       int position = tmpstr.find("=", 0);
@@ -849,7 +858,7 @@ void CGDALRasterReaderByPixel::OpenRaster(std::string lpszPathName, bool* pVal) 
   *pVal = true;
 }
 void CGDALRasterReaderByPixel::GetPixelValue(long col, long row, float_t* data) {
-  if (poBand == NULL) {
+  if (poBand == nullptr) {
     *data = -INT_MAX;
     return;
   }
@@ -857,8 +866,8 @@ void CGDALRasterReaderByPixel::GetPixelValue(long col, long row, float_t* data) 
   std::cout << "获取结果标志：" << errorNumber << std::endl;
 }
 void CGDALRasterReaderByPixel::SetRasterBand(PBand_T pBand, bool* pVal) {
-  poBand = NULL;
-  if (poDataset == NULL) {
+  poBand = nullptr;
+  if (poDataset == nullptr) {
     *pVal = false;
     return;
   }
@@ -874,15 +883,15 @@ void CGDALRasterReaderByPixel::SetRasterBand(PBand_T pBand, bool* pVal) {
     extent->MinX = 0;
     extent->MinY = 0;
 
-    if (poSubDataset != NULL) {
+    if (poSubDataset != nullptr) {
       delete poSubDataset;
     }
-    poSubDataset = NULL;
+    poSubDataset = nullptr;
     // _bstr_t path = vr.bstrVal;
     // char* cpath = path;
 
     poSubDataset = (GDALDataset*)GDALOpen(pBand.rasterPath, GA_ReadOnly);
-    if (poSubDataset == NULL) {
+    if (poSubDataset == nullptr) {
       *pVal = false;
       return;
     }
@@ -914,13 +923,13 @@ void CGDALRasterReaderByPixel::GetCols(long* pVal) { *pVal = this->cols; }
 void CGDALRasterReaderByPixel::GetExtent(OGREnvelope** pVal) { *pVal = this->extent; }
 void CGDALRasterReaderByPixel::GetCellSize(double_t* pVal) { *pVal = this->cellSize; }
 void CGDALRasterReaderByPixel::GetBandCount(long* pVal) {
-  if (poDataset == NULL) {
+  if (poDataset == nullptr) {
     *pVal = 0;
     return;
   } else if (metadata.size() == 0) {
     *pVal = poDataset->GetRasterCount();
   } else {
-    if (poSubDataset == NULL) {
+    if (poSubDataset == nullptr) {
       *pVal = 0;
       return;
     } else {
@@ -930,7 +939,7 @@ void CGDALRasterReaderByPixel::GetBandCount(long* pVal) {
   return;
 }
 void CGDALRasterReaderByPixel::GetNoData(double_t* pVal) {
-  if (poBand == NULL) {
+  if (poBand == nullptr) {
     *pVal = 0;
   } else {
     *pVal = poBand->GetNoDataValue();
@@ -938,12 +947,12 @@ void CGDALRasterReaderByPixel::GetNoData(double_t* pVal) {
   return;
 }
 void CGDALRasterReaderByPixel::SetNoData(double_t pVal) {
-  if (poBand != NULL) {
+  if (poBand != nullptr) {
     poBand->SetNoDataValue(pVal);
   }
 }
 void CGDALRasterReaderByPixel::GetMinMax(bool bApproxOK, double_t* min, double_t* max, bool* pVal) {
-  if (poBand == NULL) {
+  if (poBand == nullptr) {
     *pVal = false;
     return;
   }
@@ -958,7 +967,7 @@ void CGDALRasterReaderByPixel::GetMinMax(bool bApproxOK, double_t* min, double_t
 }
 void CGDALRasterReaderByPixel::ComputeRasterMinMax(bool bApproxOK, double_t* min, double_t* max,
                                                    bool* pVal) {
-  if (poBand == NULL) {
+  if (poBand == nullptr) {
     *pVal = false;
     return;
   }
@@ -974,11 +983,11 @@ void CGDALRasterReaderByPixel::ComputeRasterMinMax(bool bApproxOK, double_t* min
 }
 void CGDALRasterReaderByPixel::ComputeStatistics(bool bApproxOK, double_t* min, double_t* max,
                                                  double_t* mean, double_t* stddev, bool* pVal) {
-  if (poBand == NULL) {
+  if (poBand == nullptr) {
     *pVal = false;
     return;
   }
-  CPLErr pErr = poBand->ComputeStatistics(bApproxOK, min, max, mean, stddev, NULL, NULL);
+  CPLErr pErr = poBand->ComputeStatistics(bApproxOK, min, max, mean, stddev, nullptr, nullptr);
   if (pErr == CE_None)
     *pVal = true;
   else
@@ -988,7 +997,7 @@ void CGDALRasterReaderByPixel::ComputeStatistics(bool bApproxOK, double_t* min, 
 
 void CGDALRasterReaderByPixel::GetStatistics(bool bApproxOK, double_t* min, double_t* max,
                                              double_t* mean, double_t* stddev, bool* pVal) {
-  if (poBand == NULL) {
+  if (poBand == nullptr) {
     *pVal = false;
     return;
   }
@@ -1004,21 +1013,21 @@ void CGDALRasterReaderByPixel::GetSpatialReference(OGRSpatialReference** pVal) {
   OGRSpatialReference* pNew = nullptr;
   *pVal = pNew;
   GDALDataset* pDataset;
-  if (poSubDataset != NULL) {
+  if (poSubDataset != nullptr) {
     pDataset = poSubDataset;
   } else
     pDataset = poDataset;
-  if (pDataset == NULL) {
+  if (pDataset == nullptr) {
     return;
   }
   const char* info = pDataset->GetProjectionRef();
-  if (info != NULL) {
+  if (info != nullptr) {
     pNew->importFromWkt(info);
   }
   return;
 }
 void CGDALRasterReaderByPixel::GetDataType(RasterDataType* pVal) {
-  if (poBand == NULL) {
+  if (poBand == nullptr) {
     *pVal = RasterDataType::rdtUnknown;
     return;
   }
@@ -1027,7 +1036,7 @@ void CGDALRasterReaderByPixel::GetDataType(RasterDataType* pVal) {
 }
 void CGDALRasterReaderByPixel::GetMetaData(std::vector<std::string>** pVal) {
   if (metadata.size() == 0) {
-    *pVal = NULL;
+    *pVal = nullptr;
     return;
   }
   for (long k = 0; k < (int)metadata.size(); k++) {
@@ -1036,14 +1045,16 @@ void CGDALRasterReaderByPixel::GetMetaData(std::vector<std::string>** pVal) {
   }
   return;
 }
+
+// TODO: 未实现
 void CGDALRasterReaderByPixel::GetColorTable(std::vector<GDALColorTable>** pVal) {
-  if (poBand == NULL) {
-    *pVal = NULL;
+  if (poBand == nullptr) {
+    *pVal = nullptr;
     return;
   }
   GDALColorTable* gct = poBand->GetColorTable();
-  if (gct == NULL) {
-    *pVal = NULL;
+  if (gct == nullptr) {
+    *pVal = nullptr;
     return;
   }
   int size = gct->GetColorEntryCount();
@@ -1057,4 +1068,921 @@ void CGDALRasterReaderByPixel::GetColorTable(std::vector<GDALColorTable>** pVal)
     (*pVal)->push_back(table);
   }
   return;
+}
+
+/*-------------------CGDALRasterReaderByFileArray的实现--------------------------------*/
+CGDALRasterReaderByFileArray::CGDALRasterReaderByFileArray() {
+  rows = 0;
+  cols = 0;
+  CellSize = 0;
+  poDataset = nullptr;
+  poSubDataset = nullptr;
+  poBand = nullptr;
+  pData = nullptr;
+  BufferSize = 0;
+  poCT = nullptr;
+  tpoCT = nullptr;
+}
+
+GDALColorTable* CGDALRasterReaderByFileArray::CreateColorTable() {
+  GDALColorTable* pColorTable = nullptr;
+  if (poBand == nullptr) {
+    return nullptr;
+  }
+  GDALColorTable* gct = poBand->GetColorTable();
+  if (gct == nullptr) return nullptr;
+  pColorTable = new GDALColorTable(GPI_RGB);
+  int Size = gct->GetColorEntryCount();
+  for (int k = 0; k < Size; k++) {
+    GDALColorEntry gce;
+    gct->GetColorEntryAsRGB(k, &gce);
+    pColorTable->SetColorEntry(k, &gce);
+  }
+  return pColorTable;
+}
+
+GDALRasterBand* CGDALRasterReaderByFileArray::GetGDALBand() { return this->poBand; }
+
+// todo: 空实现
+OGREnvelope CGDALRasterReaderByFileArray::TransformRect(OGRCoordinateTransformation* poCT,
+                                                        OGREnvelope rt) {
+  if (poCT == NULL) {
+    return rt;
+  }
+  return rt;
+}
+OGREnvelope CGDALRasterReaderByFileArray::MapToPixelCoord(OGREnvelope MapExtent) {
+  OGREnvelope PixelRect;
+  // PixelRect.Left = (MapExtent.Left - XMin) / CellSize;
+  // PixelRect.Right = (MapExtent.Right - XMin) / CellSize;
+  // PixelRect.Top = (YMax - MapExtent.Top) / CellSize;
+  // PixelRect.Bottom = (YMax - MapExtent.Bottom) / CellSize;
+  return PixelRect;
+}
+OGREnvelope CGDALRasterReaderByFileArray::PixelToMapCoord(OGREnvelope PixelExtent) {
+  OGREnvelope PaintExtent;
+  // if (PixelExtent.Top > PixelExtent.Bottom) {
+  //   double temp = PixelExtent.Top;
+  //   PixelExtent.Top = PixelExtent.Bottom;
+  //   PixelExtent.Bottom = temp;
+  // }
+  // PaintExtent.Left = PixelExtent.Left * CellSize + XMin;
+  // PaintExtent.Right = (PixelExtent.Right + 1) * CellSize + XMin;
+  // PaintExtent.Top = YMax - PixelExtent.Top * CellSize;
+  // PaintExtent.Bottom = YMax - (PixelExtent.Bottom + 1) * CellSize;
+  return PaintExtent;
+}
+
+void CGDALRasterReaderByFileArray::OpenRaster(std::string lpszPathName, bool* pVal) {
+  // lpszPathName = (CString)PathName;
+  if (poDataset != nullptr) {
+    delete poDataset;
+  }
+
+  if (poSubDataset != nullptr) {
+    delete poSubDataset;
+  }
+  poDataset = nullptr;
+  poSubDataset = nullptr;
+  rows = 0;
+  cols = 0;
+  XMin = XMax = YMin = YMax = 0;
+  CellSize = 0;
+  poBand = nullptr;
+  BufferSize = 0;
+  if (pData != nullptr) {
+    // pData->Release();
+    delete pData;
+    pData = nullptr;
+  }
+  metadatas.clear();
+
+  poDataset = (GDALDataset*)GDALOpen(lpszPathName.c_str(), GA_ReadOnly);
+  if (poDataset == NULL) {
+    *pVal = false;
+    return;
+  }
+  const char* papszMetadata = GDALGetDriverShortName((GDALDriverH)poDataset);
+  char** SUBDATASETS = GDALGetMetadata((GDALDatasetH)poDataset, "SUBDATASETS");
+  if (CSLCount(SUBDATASETS) == 0) {
+    rows = poDataset->GetRasterYSize();
+    cols = poDataset->GetRasterXSize();
+    double adfGeoTransform[6];
+    poDataset->GetGeoTransform(adfGeoTransform);
+    if (adfGeoTransform[5] > 0) {
+      adfGeoTransform[3] = adfGeoTransform[3] + adfGeoTransform[5] * rows;
+      adfGeoTransform[5] = -adfGeoTransform[5];
+    }
+    XMin = adfGeoTransform[0];
+    YMin = adfGeoTransform[3] + adfGeoTransform[5] * rows;
+    XMax = adfGeoTransform[0] + cols * adfGeoTransform[1];
+    YMax = adfGeoTransform[3];
+    CellSize = fabs(adfGeoTransform[1]);
+  } else {
+    for (int i = 0; SUBDATASETS[i] != nullptr; i++) {
+      std::string tmpstr = SUBDATASETS[i];
+      // 将每个SUBDATASETS按照等号分割
+      int position = tmpstr.find("=", 0);
+      // 取等号右边的属性值
+      metadatas.push_back(tmpstr.substr(position));
+    }
+  }
+  *pVal = true;
+  return;
+}
+
+void CGDALRasterReaderByFileArray::PutRasterBand(PBand_T band, bool* pVal) {
+  poBand = NULL;
+  if (poDataset == NULL) {
+    *pVal = false;
+    return;
+  }
+  if (metadatas.size() == 0) {
+    PBand_T vr = band;
+    pBand = vr;
+    poBand = poDataset->GetRasterBand(pBand.bandNumber);
+  } else {
+    rows = 0;
+    cols = 0;
+    CellSize = 0;
+    XMin = XMax = YMin = YMax = 0;
+    pBand = band;
+    if (poSubDataset != NULL) delete poSubDataset;
+    poSubDataset = NULL;
+    poSubDataset = (GDALDataset*)GDALOpen(pBand.rasterPath, GA_ReadOnly);
+    if (poSubDataset == NULL) {
+      *pVal = false;
+      return;
+    }
+    rows = poSubDataset->GetRasterYSize();
+    cols = poSubDataset->GetRasterXSize();
+    double adfGeoTransform[6];
+    poSubDataset->GetGeoTransform(adfGeoTransform);
+    if (adfGeoTransform[5] > 0) {
+      adfGeoTransform[3] = adfGeoTransform[3] + adfGeoTransform[5] * rows;
+      adfGeoTransform[5] = -adfGeoTransform[5];
+    }
+    XMin = adfGeoTransform[0];
+    YMin = adfGeoTransform[3] + adfGeoTransform[5] * rows;
+    XMax = adfGeoTransform[0] + cols * adfGeoTransform[1];
+    YMax = adfGeoTransform[3];
+    CellSize = fabs(adfGeoTransform[1]);
+    poBand = poSubDataset->GetRasterBand(1);
+  }
+  *pVal = true;
+  return;
+}
+
+void CGDALRasterReaderByFileArray::get_PathName(std::string* pVal) { *pVal = lpszPathName; }
+
+void CGDALRasterReaderByFileArray::get_CurrentBand(PBand_T* pVal) { *pVal = pBand; }
+
+void CGDALRasterReaderByFileArray::get_Rows(long* pVal) { *pVal = rows; }
+void CGDALRasterReaderByFileArray::get_Cols(long* pVal) { *pVal = cols; }
+
+// TODO: 返回了局部变量的引用，需要清理
+void CGDALRasterReaderByFileArray::get_Extent(OGREnvelope** pVal) {
+  OGREnvelope* pNew;
+  pNew->MaxX = (*pVal)->MaxX;
+  pNew->MaxY = (*pVal)->MaxY;
+  pNew->MinX = (*pVal)->MinX;
+  pNew->MinY = (*pVal)->MinY;
+  *pVal = pNew;
+  return;
+}
+void CGDALRasterReaderByFileArray::get_CellSize(double_t* pVal) { *pVal = this->CellSize; }
+void CGDALRasterReaderByFileArray::get_BandCount(long* pVal) {
+  if (poDataset == NULL) {
+    *pVal = 0;
+    return;
+  } else if (metadatas.size() == 0) {
+    *pVal = poDataset->GetRasterCount();
+  } else {
+    if (poSubDataset == NULL) {
+      *pVal = 0;
+      return;
+    } else {
+      *pVal = 1;
+    }
+  }
+  return;
+}
+void CGDALRasterReaderByFileArray::get_NoData(double_t* pVal) {
+  if (poBand == NULL) {
+    *pVal = 0;
+  } else {
+    *pVal = poBand->GetNoDataValue();
+  }
+  return;
+}
+
+void CGDALRasterReaderByFileArray::put_NoData(double_t pVal) {
+  if (poBand != NULL) poBand->SetNoDataValue(pVal);
+  return;
+}
+
+void CGDALRasterReaderByFileArray::GetMinMax(bool bApproxOK, double_t* min, double_t* max,
+                                             bool* pVal) {
+  if (poBand == NULL) {
+    *pVal = false;
+    return;
+  }
+  double_t mean, stddev;
+  CPLErr pErr = poBand->GetStatistics(bApproxOK, true, min, max, &mean, &stddev);
+  if (pErr == CE_None)
+    *pVal = true;
+  else
+    *pVal = false;
+  return;
+}
+
+void CGDALRasterReaderByFileArray::GetStatistics(bool bApproxOK, double_t* min, double_t* max,
+                                                 double_t* mean, double_t* stddev, bool* pVal) {
+  if (poBand == NULL) {
+    *pVal = false;
+    return;
+  }
+  CPLErr pErr = poBand->GetStatistics(bApproxOK, true, min, max, mean, stddev);
+  if (pErr == CE_None)
+    *pVal = true;
+  else
+    *pVal = false;
+  return;
+}
+
+void CGDALRasterReaderByFileArray::ComputeRasterMinMax(bool bApproxOK, double_t* min, double_t* max,
+                                                       bool* pVal) {
+  if (poBand == NULL) {
+    *pVal = false;
+    return;
+  }
+  double dV[2];
+  CPLErr pErr = poBand->ComputeRasterMinMax(bApproxOK, dV);
+  if (pErr == CE_None) {
+    *min = dV[0];
+    *max = dV[1];
+    *pVal = true;
+  } else
+    *pVal = false;
+  return;
+}
+
+void CGDALRasterReaderByFileArray::ComputeStatistics(bool bApproxOK, double_t* min, double_t* max,
+                                                     double_t* mean, double_t* stddev, bool* pVal) {
+  if (poBand == NULL) {
+    *pVal = false;
+    return;
+  }
+  CPLErr pErr = poBand->ComputeStatistics(bApproxOK, min, max, mean, stddev, NULL, NULL);
+  if (pErr == CE_None)
+    *pVal = true;
+  else
+    *pVal = false;
+  return;
+}
+
+// TODO: 清理堆区资源
+void CGDALRasterReaderByFileArray::GetSpatialReference(OGRSpatialReference** pVal) {
+  GDALDataset* pDataset;
+  if (poSubDataset != NULL) {
+    pDataset = poSubDataset;
+  } else {
+    pDataset = poDataset;
+  }
+  if (pDataset == NULL) {
+    return;
+  }
+  const char* info = pDataset->GetProjectionRef();
+  if (info != NULL) {
+    bool IsOk;
+    // TODO: 有返回值
+    (*pVal)->importFromWkt(info);
+    return;
+  }
+}
+void CGDALRasterReaderByFileArray::GetMetaData(std::vector<std::string>** pVal) {
+  if (metadatas.size() == NULL) {
+    *pVal = NULL;
+    return;
+  }
+  std::vector<std::string> psa;
+  long index;
+  for (long k = 0; k < metadatas.size(); k++) {
+    index = k;
+    std::string sV = metadatas.at(k);
+    psa.push_back(sV);
+    // SafeArrayPutElement(psa, &index, sV.c_str());
+  }
+  *pVal = &psa;
+  return;
+}
+
+void CGDALRasterReaderByFileArray::GetDataType(RasterDataType* pVal) {
+  if (poBand == nullptr) {
+    *pVal = RasterDataType::rdtUnknown;
+    return;
+  }
+  *pVal = (RasterDataType)poBand->GetRasterDataType();
+  return;
+}
+
+// TODO: 未实现GetColorTable
+void CGDALRasterReaderByFileArray::GetColorTable(std::vector<GDALColorTable>** pVal) {
+  if (poBand == nullptr) {
+    *pVal = nullptr;
+    return;
+  }
+  GDALColorTable* gct = poBand->GetColorTable();
+  if (gct == nullptr) {
+    *pVal = nullptr;
+    return;
+  }
+  // int Size = gct->GetColorEntryCount();
+  // // SAFEARRAY* psa;
+  // std::vector<GDALColorTable> psa;
+  // for (long k = 0; k < Size; k++) {
+  //   GDALColorEntry gce;
+  //   gct->GetColorEntryAsRGB(k, &gce);
+
+  //   (*pVal)->push_back(gct);
+  // }
+  return;
+}
+
+void CGDALRasterReaderByFileArray::GetBlockData(long x1, long y1, long x2, long y2, long buffx,
+                                                long buffy, IFileFloatArray** pVal) {
+  if (poBand == NULL) {
+    *pVal = NULL;
+    return;
+  }
+  if (x1 > x2) {
+    long temp = x1;
+    x1 = x2;
+    x2 = temp;
+  }
+  if (y1 > y2) {
+    long temp = y1;
+    y1 = y2;
+    y2 = temp;
+  }
+  long buffer = buffx * buffy;
+  if (buffer <= 0) {
+    *pVal = nullptr;
+    return;
+  }
+  if (buffer != BufferSize) {
+    // if (pData != nullptr) {
+    //   pData->Release();
+    // }
+
+    // TODO: 实例化一个pData类型的实例
+    // this->pData = ;
+    bool IsOk;
+    pData->SetSize(buffer, poBand->GetNoDataValue(), &IsOk);
+    if (!IsOk) {
+      pData = nullptr;
+      BufferSize = 0;
+      *pVal = nullptr;
+      return;
+    }
+    BufferSize = buffer;
+  }
+  float difx = (float)(x2 - x1 + 1) / buffx;
+  float dify = (float)(y2 - y1 + 1) / buffy;
+  float* fV = new float[x2 - x1 + 1];
+  int CurrentRow = y1 - 1;
+  long pos = 0;
+  for (float row = y1 + dify / 2; row < y2 + 1; row += dify) {
+    if (CurrentRow != (int)row) {
+      poBand->RasterIO(GF_Read, x1, row, (x2 - x1 + 1), 1, fV, (x2 - x1 + 1), 1, GDT_Float32, 0, 0);
+    }
+    for (float col = x1 + difx / 2; col < x2 + 1; col += difx) {
+      pData->SetValueAsFloat(pos, fV[(int)col]);
+      pos++;
+    }
+    CurrentRow = row;
+  }
+  *pVal = pData;
+  delete[] fV;
+  return;
+}
+
+// TODO: 未实现GetInterpolatedBlockData
+void CGDALRasterReaderByFileArray::GetInterpolatedBlockData(long x1, long y1, long x2, long y2,
+                                                            long BuffX, long BuffY,
+                                                            IFileFloatArray** pVal) {
+  return;
+}
+
+void CGDALRasterReaderByFileArray::SetRefTargetSpatialReference(OGRSpatialReference* newVal) {
+  if (poCT != nullptr) delete poCT;
+  if (tpoCT != nullptr) delete tpoCT;
+  poCT = nullptr;
+  tpoCT = nullptr;
+  if (newVal == nullptr) return;
+  GDALDataset* pDataset;
+  if (poSubDataset != nullptr)
+    pDataset = poSubDataset;
+  else
+    pDataset = poDataset;
+  if (pDataset == nullptr) {
+    return;
+  }
+  const char* cinfo = pDataset->GetProjectionRef();
+  OGRSpatialReference sp1;
+  if (cinfo != nullptr) {
+    sp1.importFromWkt(&cinfo);
+  } else {
+    return;
+  }
+  OGRSpatialReference sp2;
+  char* wkt;
+  newVal->exportToWkt(&wkt);
+  if (wkt != nullptr) {
+    sp2.importFromWkt(wkt);
+  } else
+    return;
+  poCT = OGRCreateCoordinateTransformation(&sp2, &sp1);
+  tpoCT = OGRCreateCoordinateTransformation(&sp1, &sp2);
+  return;
+}
+
+void CGDALRasterReaderByFileArray::GetBlockDataByCoord(OGRPoint* LeftTop, double_t CellSize,
+                                                       long Width, long Height, float NoData,
+                                                       IFileFloatArray** pVal) {
+  OGRPoint dpt;
+  // LeftTop->GetCoord(&dpt.X, &dpt.Y);
+  LeftTop->setX(dpt.getX());
+  LeftTop->setY(dpt.getY());
+  if (poCT == nullptr) {
+    if (!GetDataBlock(dpt, CellSize, Width, Height, NoData))
+      *pVal = nullptr;
+    else
+      *pVal = pData;
+  } else {
+    if (!GetDataBlockWithProj(dpt, CellSize, Width, Height, NoData))
+      *pVal = nullptr;
+    else
+      *pVal = pData;
+  }
+  return;
+}
+
+void CGDALRasterReaderByFileArray::GetInterpolatedBlockDataByCoord(OGRPoint* LeftTop,
+                                                                   double_t CellSize, long Width,
+                                                                   long Height, float_t NoData,
+                                                                   IFileFloatArray** pVal) {
+  OGRPoint dpt;
+  // LeftTop->GetCoord(&dpt.X, &dpt.Y);
+  LeftTop->setX(dpt.getX());
+  LeftTop->setY(dpt.getY());
+  if (poCT == nullptr) {
+    if (!GetInterpolatedDataBlock(dpt, CellSize, Width, Height, NoData))
+      *pVal = nullptr;
+    else
+      *pVal = pData;
+  } else {
+    if (!GetInterpolatedDataBlockWithProj(dpt, CellSize, Width, Height, NoData))
+      *pVal = nullptr;
+    else
+      *pVal = pData;
+  }
+  return;
+}
+
+// TODO: GetDataBlock未实现
+bool CGDALRasterReaderByFileArray::GetDataBlock(long x1, long y1, long x2, long y2, long buffx,
+                                                long buffy) {
+  // DRect FullExtent = DRect(XMin, YMax, XMax, YMin);
+  // float semiCellSize = cellSize / 2;
+  // DRect CurrentExtent(LeftTop.X + semiCellSize, LeftTop.Y - semiCellSize,
+  //                     LeftTop.X + cellSize * Width - semiCellSize,
+  //                     LeftTop.Y - Height * cellSize + semiCellSize);
+  // CRect ImageRect;
+  // CRect TargetRect;
+  // long nodata = poBand->GetNoDataValue();
+  // LONG buffer = Width * Height;
+  // if (buffer != BufferSize) {
+  //   if (pData != NULL) {
+  //     SafeArrayUnlock(pData);
+  //     SafeArrayDestroy(pData);
+  //   }
+  //   BufferSize = buffer;
+  //   pData = SafeArrayCreateVector(VT_R4, 0, BufferSize);
+  //   SafeArrayLock(pData);
+  // }
+  // float* pvData = (float*)pData->pvData;
+  // if (FullExtent.IsRectIn(CurrentExtent)) {
+  //   ImageRect.left = (CurrentExtent.Left - XMin) / CellSize;
+  //   ImageRect.top = (YMax - CurrentExtent.Top) / CellSize;
+  //   ImageRect.right = (CurrentExtent.Right - XMin) / CellSize;
+  //   ImageRect.bottom = (YMax - CurrentExtent.Bottom) / CellSize;
+  //   if ((ImageRect.Width() + 1 >= Width) || (ImageRect.Height() + 1 >= Height)) {
+  //     if (poBand->RasterIO(GF_Read, ImageRect.left, ImageRect.top, ImageRect.Width() + 1,
+  //                          ImageRect.Height() + 1, pvData, Width, Height, GDT_Float32, 0, 0)
+  //         != CE_None)
+  //       return false;
+  //     if (nodata != (long)NoData) {
+  //       long Pos = 0;
+  //       for (int i = 0; i < Height; i++) {
+  //         for (int j = 0; j < Width; j++) {
+  //           if ((long)pvData[Pos] == nodata) pvData[Pos] = NoData;
+  //           Pos++;
+  //         }
+  //       }
+  //     }
+  //   } else {
+  //     float* data = (float*)CPLMalloc(sizeof(float) * (ImageRect.Width() + 1) * sizeof(float)
+  //                                     * (ImageRect.Height() + 1));
+  //     if (poBand->RasterIO(GF_Read, ImageRect.left, ImageRect.top, ImageRect.Width() + 1,
+  //                          ImageRect.Height() + 1, data, ImageRect.Width() + 1,
+  //                          ImageRect.Height() + 1, GDT_Float32, 0, 0)
+  //         != CE_None) {
+  //       CPLFree(data);
+  //       long Size = Width * Height;
+  //       for (long k = 0; k < Size; k++) pvData[k] = NoData;
+  //       return false;
+  //     }
+  //     DRect ext = PixelToMapCoord(ImageRect);
+  //     float Y = LeftTop.Y - semiCellSize;
+  //     long Pos = 0;
+  //     float X;
+  //     int posx, posy;
+  //     long Posi;
+  //     int W = ImageRect.Width();
+  //     double rCellSize = CellSize;
+  //     for (int i = 0; i < Height; i++) {
+  //       X = LeftTop.X + semiCellSize;
+  //       posy = (ext.Top - Y) / rCellSize;
+  //       // if(posy>ImageRect.Height()) posy=ImageRect.Height();
+  //       for (int j = 0; j < Width; j++) {
+  //         posx = (X - ext.Left) / rCellSize;
+  //         // if(posx>ImageRect.Width()) posx=ImageRect.Width();
+  //         Posi = posy * (W + 1) + posx;
+  //         if ((long)data[Posi] == nodata)
+  //           pvData[Pos] = NoData;
+  //         else
+  //           pvData[Pos] = data[Posi];
+  //         Pos++;
+  //         X += cellSize;
+  //       }
+  //       Y -= cellSize;
+  //     }
+  //     CPLFree(data);
+  //   }
+  // } else {
+  //   long Size = Width * Height;
+  //   for (long k = 0; k < Size; k++) pvData[k] = NoData;
+  //   if (!FullExtent.IntersectRect(CurrentExtent)) return true;
+  //   CurrentExtent = FullExtent.Intersect(CurrentExtent);
+  //   ImageRect.left = (CurrentExtent.Left - XMin) / CellSize;
+  //   ImageRect.top = (YMax - CurrentExtent.Top) / CellSize;
+  //   ImageRect.right = (CurrentExtent.Right - XMin) / CellSize;
+  //   if (ImageRect.right >= cols) ImageRect.right = cols - 1;
+  //   ImageRect.bottom = (YMax - CurrentExtent.Bottom) / CellSize;
+  //   if (ImageRect.bottom >= rows) ImageRect.bottom = rows - 1;
+  //   TargetRect.left = (CurrentExtent.Left - LeftTop.X) / cellSize;
+  //   if (TargetRect.left < 0) TargetRect.left = 0;
+  //   TargetRect.top = (LeftTop.Y - CurrentExtent.Top) / cellSize;
+  //   if (TargetRect.top < 0) TargetRect.top = 0;
+  //   TargetRect.right = (CurrentExtent.Right - LeftTop.X) / cellSize;
+  //   if (TargetRect.right >= Width) TargetRect.right = Width - 1;
+  //   TargetRect.bottom = (LeftTop.Y - CurrentExtent.Bottom) / cellSize;
+  //   if (TargetRect.bottom >= Height) TargetRect.bottom = Height - 1;
+  //   if ((ImageRect.Width() >= TargetRect.Width()) || (ImageRect.Height() >= TargetRect.Height()))
+  //   {
+  //     float* data = (float*)CPLMalloc(sizeof(float) * (TargetRect.Width() + 1) * sizeof(float)
+  //                                     * (TargetRect.Height() + 1));
+  //     if (poBand->RasterIO(GF_Read, ImageRect.left, ImageRect.top, ImageRect.Width() + 1,
+  //                          ImageRect.Height() + 1, data, TargetRect.Width() + 1,
+  //                          TargetRect.Height() + 1, GDT_Float32, 0, 0)
+  //         != CE_None) {
+  //       CPLFree(data);
+  //       return false;
+  //     }
+  //     long Pos;
+  //     long Posi = 0;
+  //     for (int i = TargetRect.top; i <= TargetRect.bottom; i++) {
+  //       Pos = i * Width + TargetRect.left;
+  //       for (int j = TargetRect.left; j <= TargetRect.right; j++) {
+  //         if ((long)data[Posi] == nodata)
+  //           pvData[Pos] = NoData;
+  //         else
+  //           pvData[Pos] = data[Posi];
+  //         Pos++;
+  //         Posi++;
+  //       }
+  //     }
+  //     CPLFree(data);
+  //   } else {
+  //     float* data = (float*)CPLMalloc(sizeof(float) * (ImageRect.Width() + 1) * sizeof(float)
+  //                                     * (ImageRect.Height() + 1));
+  //     if (poBand->RasterIO(GF_Read, ImageRect.left, ImageRect.top, ImageRect.Width() + 1,
+  //                          ImageRect.Height() + 1, data, ImageRect.Width() + 1,
+  //                          ImageRect.Height() + 1, GDT_Float32, 0, 0)
+  //         != CE_None) {
+  //       CPLFree(data);
+  //       return false;
+  //     }
+  //     long Pos;
+  //     DRect ext = PixelToMapCoord(ImageRect);
+  //     float Y = LeftTop.Y - semiCellSize - TargetRect.top * cellSize;
+  //     float X;
+  //     int posx, posy;
+  //     long Posi;
+  //     int W = ImageRect.Width();
+  //     double rCellSize = CellSize;
+  //     for (int i = TargetRect.top; i <= TargetRect.bottom; i++) {
+  //       X = LeftTop.X + semiCellSize + TargetRect.left * cellSize;
+  //       Pos = i * Width + TargetRect.left;
+  //       posy = (ext.Top - Y) / rCellSize;
+  //       if (posy > ImageRect.Height()) posy = ImageRect.Height();
+  //       for (int j = TargetRect.left; j <= TargetRect.right; j++) {
+  //         posx = (X - ext.Left) / rCellSize;
+  //         if (posx > W) posx = W;
+  //         Posi = posy * (W + 1) + posx;
+  //         if ((long)data[Posi] == nodata)
+  //           pvData[Pos] = NoData;
+  //         else
+  //           pvData[Pos] = data[Posi];
+  //         Pos++;
+  //         X += cellSize;
+  //       }
+  //       Y -= cellSize;
+  //     }
+  //     CPLFree(data);
+  //   }
+  // }
+  // return true;
+  return true;
+}
+
+bool CGDALRasterReaderByFileArray::ReadDataBlock(long x1, long y1, long x2, long y2, long buffx,
+                                                 long buffy, IFileFloatArray* pData) {
+  if (poBand == nullptr) {
+    return false;
+  }
+  if (x1 > x2) {
+    long temp = x1;
+    x1 = x2;
+    x2 = temp;
+  }
+  if (y1 > y2) {
+    long temp = y1;
+    y1 = y2;
+    y2 = temp;
+  }
+  long buffer = buffx * buffy;
+  if (buffer <= 0) {
+    return false;
+  }
+  float difx = (float)(x2 - x1 + 1) / buffx;
+  float dify = (float)(y2 - y1 + 1) / buffy;
+  float* fV = new float[x2 - x1 + 1];
+  int CurrentRow = y1 - 1;
+  long pos = 0;
+  for (float row = y1 + dify / 2; row < y2 + 1; row += dify) {
+    if (CurrentRow != (int)row) {
+      poBand->RasterIO(GF_Read, x1, row, (x2 - x1 + 1), 1, fV, (x2 - x1 + 1), 1, GDT_Float32, 0, 0);
+    }
+    for (float col = x1 + difx / 2; col < x2 + 1; col += difx) {
+      pData->SetValueAsFloat(pos, fV[(int)col - x1]);
+      pos++;
+    }
+    CurrentRow = row;
+  }
+  delete[] fV;
+  return true;
+}
+
+IFileFloatArray* CGDALRasterReaderByFileArray::GetDataBlock(long x1, long y1, long x2, long y2,
+                                                            long buffx, long buffy) {
+  if (poBand == NULL) {
+    return NULL;
+  }
+  if (x1 > x2) {
+    long temp = x1;
+    x1 = x2;
+    x2 = temp;
+  }
+  if (y1 > y2) {
+    long temp = y1;
+    y1 = y2;
+    y2 = temp;
+  }
+  long buffer = buffx * buffy;
+  if (buffer <= 0) {
+    return NULL;
+  }
+  // pData要返回，需要在堆上新建
+  IFileFloatArray* pData;
+  bool IsOk;
+  pData->SetSize(buffer, poBand->GetNoDataValue(), &IsOk);
+  if (!IsOk) {
+    pData = NULL;
+    return NULL;
+  }
+  float difx = (float)(x2 - x1 + 1) / buffx;
+  float dify = (float)(y2 - y1 + 1) / buffy;
+  float* fV = new float[x2 - x1 + 1];
+  int CurrentRow = y1 - 1;
+  long pos = 0;
+  for (float row = y1 + dify / 2; row < y2 + 1; row += dify) {
+    if (CurrentRow != (int)row) {
+      poBand->RasterIO(GF_Read, x1, row, (x2 - x1 + 1), 1, fV, (x2 - x1 + 1), 1, GDT_Float32, 0, 0);
+    }
+    for (float col = x1 + difx / 2; col < x2 + 1; col += difx) {
+      pData->SetValueAsFloat(pos, fV[(int)col - x1]);
+      pos++;
+    }
+    CurrentRow = row;
+  }
+  delete[] fV;
+  return pData;
+}
+
+bool CGDALRasterReaderByFileArray::GetDataBlock(OGRPoint LeftTop, float cellSize, int Width,
+                                                int Height, float NoData) {
+  // DRect FullExtent = DRect(XMin, YMax, XMax, YMin);
+  OGREnvelope FullExtent;
+  FullExtent.MinX = XMin;
+  FullExtent.MaxY = YMax;
+  FullExtent.MaxX = XMax;
+  FullExtent.MinY = YMin;
+  float semiCellSize = cellSize / 2;
+
+  // DRect CurrentExtent(LeftTop.getX() + semiCellSize, LeftTop.getY() - semiCellSize,
+  //                     LeftTop.getX() + cellSize * Width - semiCellSize,
+  //                     LeftTop.getY() - Height * cellSize + semiCellSize);
+
+  // 左/上/右/下的顺序
+  OGREnvelope CurrentExtent;
+  CurrentExtent.MinX = LeftTop.getX() + semiCellSize;
+  CurrentExtent.MaxY = LeftTop.getY() - semiCellSize;
+  CurrentExtent.MaxX = LeftTop.getX() + cellSize * Width - semiCellSize;
+  CurrentExtent.MinY = LeftTop.getY() - Height * cellSize + semiCellSize;
+
+  CRect ImageRect;
+  CRect TargetRect;
+  long nodata = poBand->GetNoDataValue();
+  long buffer = Width * Height;
+  if (buffer != BufferSize) {
+    if (pData != NULL) {
+      pData = NULL;
+    }
+
+    // TODO: 实例化pData
+    bool IsOk;
+    pData->SetSize(buffer, NoData, &IsOk);
+    if (!IsOk) {
+      pData = NULL;
+      BufferSize = 0;
+      return;
+    }
+    BufferSize = buffer;
+  }
+
+  if (FullExtent.Contains(CurrentExtent)) {
+    ImageRect.left = (CurrentExtent.MinX - XMin) / CellSize;
+    ImageRect.top = (YMax - CurrentExtent.Top) / CellSize;
+    ImageRect.right = (CurrentExtent.Right - XMin) / CellSize;
+    if (ImageRect.right >= cols) ImageRect.right = cols - 1;
+    ImageRect.bottom = (YMax - CurrentExtent.Bottom) / CellSize;
+    if (ImageRect.bottom >= rows) ImageRect.bottom = rows - 1;
+    if ((ImageRect.Width() + 1 >= Width) || (ImageRect.Height() + 1 >= Height)) {
+      if (!ReadDataBlock(ImageRect.left, ImageRect.top, ImageRect.right, ImageRect.bottom, Width,
+                         Height, pData))
+        return false;
+      if (nodata != (long)NoData) {
+        long Pos = 0;
+        for (int i = 0; i < Height; i++) {
+          for (int j = 0; j < Width; j++) {
+            float v;
+            pData->GetValueAsFloat(Pos, &v);
+            if ((long)v == nodata) pData->SetValueAsFloat(Pos, NoData);
+            Pos++;
+          }
+          // if (progress != NULL) progress->SetPos((float)i / Height * 100);
+        }
+      }
+    } else {
+      IFileFloatArray* data
+          = GetDataBlock(ImageRect.left, ImageRect.top, ImageRect.right, ImageRect.bottom,
+                         ImageRect.Width() + 1, ImageRect.Height() + 1);
+      if (data == NULL) {
+        pData->SetDefaultValue(NoData);
+        return false;
+      }
+      DRect ext = PixelToMapCoord(ImageRect);
+      float Y = LeftTop.getY() - semiCellSize;
+      long Pos = 0;
+      float X;
+      int posx, posy;
+      long Posi;
+      int W = ImageRect.Width();
+      double rCellSize = CellSize;
+      for (int i = 0; i < Height; i++) {
+        X = LeftTop.X + semiCellSize;
+        posy = (ext.Top - Y) / rCellSize;
+        // if(posy>ImageRect.Height()) posy=ImageRect.Height();
+        for (int j = 0; j < Width; j++) {
+          posx = (X - ext.Left) / rCellSize;
+          // if(posx>ImageRect.Width()) posx=ImageRect.Width();
+          Posi = posy * (W + 1) + posx;
+          float v;
+          data->GetValueAsFloat(Posi, &v);
+          if ((long)v == nodata)
+            pData->SetValueAsFloat(Pos, NoData);
+          else
+            pData->SetValueAsFloat(Pos, v);
+          Pos++;
+          X += cellSize;
+        }
+
+        Y -= cellSize;
+      }
+    }
+  } else {
+    pData->SetDefaultValue(NoData);
+    long Size = Width * Height;
+    if (!FullExtent.IntersectRect(CurrentExtent)) return true;
+    CurrentExtent = FullExtent.Intersect(CurrentExtent);
+    ImageRect.left = (CurrentExtent.Left - XMin) / CellSize;
+    ImageRect.top = (YMax - CurrentExtent.Top) / CellSize;
+    ImageRect.right = (CurrentExtent.Right - XMin) / CellSize;
+    if (ImageRect.right >= cols) ImageRect.right = cols - 1;
+    ImageRect.bottom = (YMax - CurrentExtent.Bottom) / CellSize;
+    if (ImageRect.bottom >= rows) ImageRect.bottom = rows - 1;
+    TargetRect.left = (CurrentExtent.Left - LeftTop.X) / cellSize;
+    if (TargetRect.left < 0) TargetRect.left = 0;
+    TargetRect.top = (LeftTop.Y - CurrentExtent.Top) / cellSize;
+    if (TargetRect.top < 0) TargetRect.top = 0;
+    TargetRect.right = (CurrentExtent.Right - LeftTop.X) / cellSize;
+    if (TargetRect.right >= Width) TargetRect.right = Width - 1;
+    TargetRect.bottom = (LeftTop.Y - CurrentExtent.Bottom) / cellSize;
+    if (TargetRect.bottom >= Height) TargetRect.bottom = Height - 1;
+    if ((ImageRect.Width() >= TargetRect.Width()) || (ImageRect.Height() >= TargetRect.Height())) {
+      IFileFloatArray* data
+          = GetDataBlock(ImageRect.left, ImageRect.top, ImageRect.right, ImageRect.bottom,
+                         TargetRect.Width() + 1, TargetRect.Height() + 1, progress);
+      if (data == NULL) return false;
+      long Pos;
+      long Posi = 0;
+      for (int i = TargetRect.top; i <= TargetRect.bottom; i++) {
+        Pos = i * Width + TargetRect.left;
+        for (int j = TargetRect.left; j <= TargetRect.right; j++) {
+          float v;
+          data->GetValueAsFloat(Posi, &v);
+          if ((long)v == nodata)
+            pData->SetValueAsFloat(Pos, NoData);
+          else
+            pData->SetValueAsFloat(Pos, v);
+          Pos++;
+          Posi++;
+        }
+        if (progress != NULL)
+          progress->SetPos((float)(i - TargetRect.top) / (TargetRect.bottom - TargetRect.top)
+                           * 100);
+      }
+      // data->Release();
+    } else {
+      IFileFloatArray* data
+          = GetDataBlock(ImageRect.left, ImageRect.top, ImageRect.right, ImageRect.bottom,
+                         ImageRect.Width() + 1, ImageRect.Height() + 1);
+      if (data == NULL) return false;
+      long Pos;
+      DRect ext = PixelToMapCoord(ImageRect);
+      float Y = LeftTop.Y - semiCellSize - TargetRect.top * cellSize;
+      float X;
+      int posx, posy;
+      long Posi;
+      int W = ImageRect.Width();
+      double rCellSize = CellSize;
+      for (int i = TargetRect.top; i <= TargetRect.bottom; i++) {
+        X = LeftTop.X + semiCellSize + TargetRect.left * cellSize;
+        Pos = i * Width + TargetRect.left;
+        posy = (ext.Top - Y) / rCellSize;
+        if (posy > ImageRect.Height()) posy = ImageRect.Height();
+        for (int j = TargetRect.left; j <= TargetRect.right; j++) {
+          posx = (X - ext.Left) / rCellSize;
+          if (posx > W) posx = W;
+          Posi = posy * (W + 1) + posx;
+          float v;
+          data->GetValueAsFloat(Posi, &v);
+          if ((long)v == nodata)
+            pData->SetValueAsFloat(Pos, NoData);
+          else
+            pData->SetValueAsFloat(Pos, v);
+          Pos++;
+          X += cellSize;
+        }
+        Y -= cellSize;
+        if (progress != NULL)
+          progress->SetPos((float)(i - TargetRect.top) / (TargetRect.bottom - TargetRect.top)
+                           * 100);
+      }
+      // data->Release();
+    }
+  }
+  return true;
 }

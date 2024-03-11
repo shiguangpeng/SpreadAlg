@@ -183,8 +183,8 @@ namespace spread {
                                           long BuffY, IFileFloatArray **pVal)
         = 0;
 
-    // 将原来的ISpatialReference换成EPSG代码，不要原来封装的操作，太过繁琐，需要时直接调用GDAL的相关方法即可，不必再次封装。
-    virtual void SetRefTargetSpatialReference(int *newVal = 0) = 0;
+    // 替换为OGRSpatialReference
+    virtual void SetRefTargetSpatialReference(OGRSpatialReference *newVal) = 0;
 
     virtual void GetBlockDataByCoord(OGRPoint *leftTop, double_t cellSize, long width, long height,
                                      float_t noData, IFileFloatArray **pVal)
@@ -307,7 +307,7 @@ namespace spread {
    */
   class CSpreadAnalyse {
   public:
-    CSpreadAnalyse() = default;
+    CSpreadAnalyse();
     virtual ~CSpreadAnalyse() = default;
 
   public:
@@ -574,6 +574,80 @@ namespace spread {
                            double_t *stddev, bool *pVal) override;
     void GetMetaData(std::vector<std::string> **pVal) override;
     void GetColorTable(std::vector<GDALColorTable> **pVal) override;
+  };
+
+  class CGDALRasterReaderByFileArray : public IGDALRasterProperties,
+                                       public IGDALRasterReaderByFileArray {
+  protected:
+    long rows;
+    long cols;
+    double XMin, YMin, XMax, YMax;
+    double_t CellSize;
+    GDALDataset *poDataset;
+    GDALDataset *poSubDataset;
+    GDALRasterBand *poBand;
+    PBand_T pBand;
+    std::vector<std::string> metadatas;
+    std::string lpszPathName;
+    IFileFloatArray *pData;
+    long BufferSize;
+    OGRCoordinateTransformation *poCT;
+    OGRCoordinateTransformation *tpoCT;
+
+  public:
+    CGDALRasterReaderByFileArray();
+    GDALColorTable *CreateColorTable();
+    GDALRasterBand *GetGDALBand();
+
+  protected:
+    OGREnvelope TransformRect(OGRCoordinateTransformation *poCT, OGREnvelope rt);
+    OGREnvelope MapToPixelCoord(OGREnvelope MapExtent);
+    OGREnvelope PixelToMapCoord(OGREnvelope PixelExtent);
+
+    IFileFloatArray *GetDataBlock(long x1, long y1, long x2, long y2, long buffx, long buffy);
+    bool GetDataBlock(OGRPoint LeftTop, float CellSize, int Width, int Height, float NoData);
+    bool ReadDataBlock(long x1, long y1, long x2, long y2, long buffx, long buffy,
+                       IFileFloatArray *pData);
+    bool GetInterpolatedDataBlock(OGRPoint LeftTop, float CellSize, int Width, int Height,
+                                  float NoData);
+    bool GetDataBlockWithProj(OGRPoint LeftTop, float CellSize, int Width, int Height,
+                              float NoData);
+    bool GetInterpolatedDataBlockWithProj(OGRPoint LeftTop, float CellSize, int Width, int Height,
+                                          float NoData);
+
+  public:
+    void OpenRaster(std::string lpszPathName, bool *pVal) override;
+    void PutRasterBand(PBand_T band, bool *pVal);
+    void get_PathName(std::string *pVal);
+    void get_CurrentBand(PBand_T *pVal);
+    void get_Rows(long *pVal);
+    void get_Cols(long *pVal);
+    void get_Extent(OGREnvelope **pVal);
+    void get_CellSize(double_t *pVal);
+    void get_BandCount(long *pVal);
+    void get_NoData(double_t *pVal);
+    void put_NoData(double_t pVal);
+    void GetMinMax(bool bApproxOK, double_t *min, double_t *max, bool *pVal) override;
+    void GetStatistics(bool bApproxOK, double_t *min, double_t *max, double_t *mean,
+                       double_t *stddev, bool *pVal) override;
+    void ComputeRasterMinMax(bool bApproxOK, double_t *min, double_t *max, bool *pVal) override;
+    void ComputeStatistics(bool bApproxOK, double_t *min, double_t *max, double_t *mean,
+                           double_t *stddev, bool *pVal) override;
+    void GetSpatialReference(OGRSpatialReference **pVal) override;
+    void GetMetaData(std::vector<std::string> **pVal) override;
+    void GetDataType(RasterDataType *pVal) override;
+    void GetColorTable(std::vector<GDALColorTable> **pVal) override;
+
+    void GetBlockData(long x1, long y1, long x2, long y2, long buffx, long buffy,
+                      IFileFloatArray **pVal) override;
+    void GetInterpolatedBlockData(long x1, long y1, long x2, long y2, long BuffX, long BuffY,
+                                  IFileFloatArray **pVal) override;
+    void SetRefTargetSpatialReference(OGRSpatialReference *newVal) override;
+    void GetBlockDataByCoord(OGRPoint *LeftTop, double_t CellSize, long Width, long Height,
+                             float NoData, IFileFloatArray **pVal) override;
+    void GetInterpolatedBlockDataByCoord(OGRPoint *LeftTop, double_t CellSize, long Width,
+                                         long Height, float_t NoData,
+                                         IFileFloatArray **pVal) override;
   };
 
 }  // namespace spread

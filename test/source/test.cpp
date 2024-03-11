@@ -16,7 +16,7 @@ TEST_SUITE("空间数据管理的测试用例") {
   TEST_CASE("自由传播模型调用测试") {
     using namespace spread;
     std::string path = "/home/shigp/data/test.tif";
-    CSpreadAnalyse sp = CSpreadAnalyse();
+    CSpreadAnalyse sp;
     sp.elevationPath = path;
     sp.InitEnvironment();
 
