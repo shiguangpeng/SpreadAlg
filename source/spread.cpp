@@ -6,6 +6,9 @@
 
 using namespace spread;
 
+/* -----------------------------各个类的析构函数实现------------------------------------*/
+// CSpreadAnalyse::~CSpreadAnalyse() = default;
+
 /*** --------------------- 所有场强分析算法的基类，实现 ------------------------------- */
 bool CSpreadAnalyse::InitEnvironment() {
   // // 通过打开的栅格数据，初始化类相关成员。
@@ -567,6 +570,7 @@ float_t CCombineAnalyse::GetRadiuValue(Station& stationInfo, std::vector<double_
     loss = els.at(k)->GetDBLoss(stationInfo, point);
     allNum += loss;
   }
+  std::cout << rsv.size() << std::endl;
   return allNum;
 }
 
@@ -580,6 +584,8 @@ float_t CCombineAnalyse::GetRadiuValueRev(Station& para, std::vector<double_t>& 
     loss = els.at(k)->GetDBLossRev(para, point);
     AllNum += loss;
   }
+
+  std::cout << rsv.size() << std::endl;
   return AllNum;
 }
 bool CCombineAnalyse::PrepareOtherData() {
@@ -619,6 +625,11 @@ bool CCombineAnalyse::PrepareOtherData() {
 }
 
 /*** ----------------------CFreeSpaceAnalyse 自由空间传播模型的实现------------------------------ */
+void CFreeSpaceAnalyse::PrepareReservedValues(Station& para, std::vector<double>& rsv) {
+  rsv.clear();
+  double dV = para.power + 30 + 95.23;
+  rsv.push_back(dV);
+}
 
 /// @brief 自由传播算法的实现
 /// @param stationInfo 站信息
@@ -968,6 +979,20 @@ void CGDALRasterReaderByPixel::ComputeStatistics(bool bApproxOK, double_t* min, 
     return;
   }
   CPLErr pErr = poBand->ComputeStatistics(bApproxOK, min, max, mean, stddev, NULL, NULL);
+  if (pErr == CE_None)
+    *pVal = true;
+  else
+    *pVal = false;
+  return;
+}
+
+void CGDALRasterReaderByPixel::GetStatistics(bool bApproxOK, double_t* min, double_t* max,
+                                             double_t* mean, double_t* stddev, bool* pVal) {
+  if (poBand == NULL) {
+    *pVal = false;
+    return;
+  }
+  CPLErr pErr = poBand->GetStatistics(bApproxOK, true, min, max, mean, stddev);
   if (pErr == CE_None)
     *pVal = true;
   else

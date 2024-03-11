@@ -308,7 +308,7 @@ namespace spread {
   class CSpreadAnalyse {
   public:
     CSpreadAnalyse() = default;
-    // virtual ~CSpreadAnalyse();
+    virtual ~CSpreadAnalyse() = default;
 
   public:
     /**
@@ -396,7 +396,7 @@ namespace spread {
 
   public:
     CFieldStrengthAnalyse();
-    // virtual ~CFieldStrengthAnalyse() = default;
+    virtual ~CFieldStrengthAnalyse() = default;
     // 场强分析算法的调用入口，每个场强分析类都有自己的场强分析调用入口，重定义。
     bool FieldStrengthAnalyse(std::string savePath, RasterCreateFileType type);
 
@@ -422,7 +422,7 @@ namespace spread {
     /// @brief
     /// @param stationInfo
     /// @param rsv 是一个数组，该数组里面装了台站的初始的发射功率以及其他相关信息
-    virtual void PrepareReservedValues(Station &stationInfo, std::vector<double_t> &rsv);
+    virtual void PrepareReservedValues(Station &stationInfo, std::vector<double_t> &rsv) = 0;
 
     /// @brief 分析所需要的其他栅格数据
     /// @return 返回准备的状态
@@ -448,6 +448,10 @@ namespace spread {
    */
   class CCombineAnalyse : public CFieldStrengthAnalyse {
   public:
+    CCombineAnalyse() = default;
+    ~CCombineAnalyse() = default;
+
+  public:
     bool FieldStrengthAnalyse(std::string savePath, RasterCreateFileType type);
 
   protected:
@@ -467,12 +471,12 @@ namespace spread {
     std::vector<std::string> otherPaths;
   };
 
-  /* -----------------------------
-   * 自由空间传播模型，暂只实现必要方法------------------------------*/
+  /* -----------------------------自由空间传播模型，暂只实现必要方法------------------------------*/
 
   class CFreeSpaceAnalyse : public CCombineAnalyse {
   protected:
     float_t GetRadiuValue(Station &stationInfo, std::vector<double_t> &rsv, OGRPoint &point);
+    void PrepareReservedValues(Station &para, std::vector<double_t> &rsv);
 
   public:
     // 调用父类CFreeSpaceAnalyse的FieldStrengthAnalyse方法
