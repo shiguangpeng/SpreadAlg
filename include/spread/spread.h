@@ -131,10 +131,10 @@ namespace spread {
   /** --------------------------- 数据类型封装-------------------------------------------------*/
   struct IDataArray {
   public:
-    virtual std::string GetName(std::string pVal) = 0;
-    virtual void SetName(std::string newVal) = 0;
-
-    virtual long GetSize(long *pVal) = 0;
+    // virtual std::string GetName(std::string pVal) = 0;
+    // virtual void SetName(std::string newVal) = 0;
+    virtual ~IDataArray() = default;
+    virtual void GetSize(long *pVal) = 0;
     virtual void SetSize(long size, float_t initialValue, bool *pVal) = 0;
 
     virtual void SetDefaultValue(float_t initialValue = 0) = 0;
@@ -142,38 +142,70 @@ namespace spread {
     virtual void GetValueAsFloat(long pos, float_t *pVal) = 0;
     virtual void SetValueAsFloat(long pos, float_t newVal) = 0;
 
-    virtual void GetValuesAsByte(long fromPos, std::vector<double_t> **refData) = 0;
-    virtual void SetValuesAsByte(long fromPos, std::vector<double_t> *refData) = 0;
-
-    virtual void GetValuesAsShort(long fromPos, std::vector<double_t> **refData) = 0;
-    virtual void SetValuesAsShort(long fromPos, std::vector<double_t> *refData) = 0;
-
-    virtual void GetValuesAsInteger(long fromPos, std::vector<double_t> **refData) = 0;
-    virtual void SetValuesAsInteger(long fromPos, std::vector<double_t> *refData) = 0;
-
-    virtual void SetValuesAsFloat(long fromPos, std::vector<double_t> **refData) = 0;
-    virtual void SetValuesAsFloat(long fromPos, std::vector<double_t> *refData) = 0;
+    // virtual void GetValuesAsByte(long fromPos, std::vector<double_t> **refData) = 0;
+    // virtual void SetValuesAsByte(long fromPos, std::vector<double_t> *refData) = 0;
+    // virtual void GetValuesAsShort(long fromPos, std::vector<double_t> **refData) = 0;
+    // virtual void SetValuesAsShort(long fromPos, std::vector<double_t> *refData) = 0;
+    // virtual void GetValuesAsInteger(long fromPos, std::vector<double_t> **refData) = 0;
+    // virtual void SetValuesAsInteger(long fromPos, std::vector<double_t> *refData) = 0;
+    // virtual void GetValuesAsFloat(long fromPos, std::vector<double_t> **refData) = 0;
+    // virtual void SetValuesAsFloat(long fromPos, std::vector<double_t> *refData) = 0;
   };
 
   struct IFileDataArray : public IDataArray {
+    virtual ~IFileDataArray() = default;
+
   public:
-    virtual void GetType(FileDataArrayType *pVal) = 0;
-    virtual void GetDirectory(std::string pVal) = 0;
-    virtual void SetDirectory(std::string newVal) = 0;
+    // virtual void GetType(FileDataArrayType *pVal) = 0;
+    // virtual void GetDirectory(std::string pVal) = 0;
+    // virtual void SetDirectory(std::string newVal) = 0;
     virtual void GetBufferSize(FileArrayBufferSize *pVal) = 0;
     virtual void SetBufferSize(FileArrayBufferSize newVal) = 0;
   };
   /* ----------------------------- GDAL读取栅格数据的封装 ---------------------------------------*/
   struct IGDALRasterReader {
   public:
+    virtual ~IGDALRasterReader() = default;
+
+  public:
     virtual void OpenRaster(std::string lpszPathName, bool *pVal) = 0;
     virtual void SetRasterBand(PBand_T pBand, bool *pVal) = 0;
   };
-  // why? 暂时根据原项目移植
+  // FIXME: ATTENTION:原项目这里是一个空的结构体
+  // 原项目的IFileFloatArray没有找到实现，这个类型是封装了的一维数组，直接使用该声明，将其修改成实现类（结构体），实现其接口规定的方法
+  // 这样不必动项目中有关该类型的代码
   struct IFileFloatArray : public IFileDataArray {
   public:
+    ~IFileFloatArray();
+
+  protected:
+    // 栅格数据数组
+    long size;
+    // 一维数组指针，动态分配
+    float_t *rasterDataArray;
+    FileArrayBufferSize bufferSize;
+
+  public:
+    // std::string GetName(std::string pVal) override;
+    // void SetName(std::string newVal) override;
+
+    void GetSize(long *pVal) override;
+    void SetSize(long size, float_t initialValue, bool *pVal) override;
+
+    void SetDefaultValue(float_t initialValue = 0) override;
+
+    void GetValueAsFloat(long pos, float_t *pVal) override;
+    void SetValueAsFloat(long pos, float_t newVal) override;
+
+    void GetBufferSize(FileArrayBufferSize *pVal) override;
+    void SetBufferSize(FileArrayBufferSize newVal) override;
+    float_t *GetRasterDataArray();
   };
+
   struct IGDALRasterReaderByFileArray : public IGDALRasterReader {
+  public:
+    virtual ~IGDALRasterReaderByFileArray() = default;
+
   public:
     virtual void GetBlockData(long x1, long y1, long x2, long y2, long buffx, long buffy,
                               IFileFloatArray **pVal)
@@ -197,6 +229,9 @@ namespace spread {
   };
 
   struct IGDALRasterProperties : public IGDALRasterReader {
+  public:
+    virtual ~IGDALRasterProperties() = default;
+
   public:
     virtual void GetPathName(std::string *pVal) = 0;
     virtual void GetCurrentBand(PBand_T *pVal) = 0;
@@ -266,7 +301,7 @@ namespace spread {
   /* ------------------------------Stations ------------------------------------ */
   struct IStations {
   public:
-    virtual void AddStation(Station station) = 0;
+    virtual void AddStation(Station *station) = 0;
     virtual void GetCount(long *pVal) = 0;
     virtual void RemoveAt(long index) = 0;
     virtual void RemoveAll(void) = 0;
@@ -280,7 +315,7 @@ namespace spread {
     std::vector<Station *> stations;
 
   public:
-    void AddStation(Station station) override;
+    void AddStation(Station *station) override;
     void GetCount(long *pVal) override;
     void RemoveAt(long index) override;
     void RemoveAll(void) override;
@@ -300,6 +335,10 @@ namespace spread {
   public:
     CRect();
     CRect(int left, int top, int right, int bottom);
+
+  public:
+    int Width();
+    int Height();
   };
 
   /**
@@ -328,7 +367,7 @@ namespace spread {
     std::string elevationPath;
 
     // 封装过的根据条件获取栅格数据的对象
-    struct IGDALRasterReaderByFileArray *pElevs;
+    IGDALRasterReaderByFileArray *pElevs;
 
     /**
      * @brief 错误信息
@@ -382,7 +421,7 @@ namespace spread {
   };
 
   class CFieldStrengthAnalyse : public CSpreadAnalyse {
-  protected:
+  public:
     IStations *pStations;
     float_t hm;
     std::string outputPath;
@@ -578,6 +617,9 @@ namespace spread {
 
   class CGDALRasterReaderByFileArray : public IGDALRasterProperties,
                                        public IGDALRasterReaderByFileArray {
+  public:
+    ~CGDALRasterReaderByFileArray() = default;
+
   protected:
     long rows;
     long cols;
@@ -617,16 +659,16 @@ namespace spread {
 
   public:
     void OpenRaster(std::string lpszPathName, bool *pVal) override;
-    void PutRasterBand(PBand_T band, bool *pVal);
-    void get_PathName(std::string *pVal);
-    void get_CurrentBand(PBand_T *pVal);
-    void get_Rows(long *pVal);
-    void get_Cols(long *pVal);
-    void get_Extent(OGREnvelope **pVal);
-    void get_CellSize(double_t *pVal);
-    void get_BandCount(long *pVal);
-    void get_NoData(double_t *pVal);
-    void put_NoData(double_t pVal);
+    void SetRasterBand(PBand_T band, bool *pVal) override;
+    void GetPathName(std::string *pVal) override;
+    void GetCurrentBand(PBand_T *pVal) override;
+    void GetRows(long *pVal) override;
+    void GetCols(long *pVal) override;
+    void GetExtent(OGREnvelope **pVal) override;
+    void GetCellSize(double_t *pVal) override;
+    void GetBandCount(long *pVal) override;
+    void GetNoData(double_t *pVal) override;
+    void SetNoData(double_t pVal) override;
     void GetMinMax(bool bApproxOK, double_t *min, double_t *max, bool *pVal) override;
     void GetStatistics(bool bApproxOK, double_t *min, double_t *max, double_t *mean,
                        double_t *stddev, bool *pVal) override;
