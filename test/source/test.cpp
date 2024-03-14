@@ -1,8 +1,7 @@
+// All Copyright reserved. shigp
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include <doctest/doctest.h>
-// #include <spread/spatidatamanager.h>
-#include <math.h>
 #include <spread/spread.h>
 
 #include <fstream>
