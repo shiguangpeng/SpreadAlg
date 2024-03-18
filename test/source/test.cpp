@@ -2,6 +2,9 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include <doctest/doctest.h>
+#include <spread/model/fieldstrengthanalyse.h>
+#include <spread/model/freespace.h>
+#include <spread/model/spreadanalyse.h>
 #include <spread/spread.h>
 
 #include <fstream>
@@ -17,12 +20,12 @@ TEST_SUITE("传播算法测试用例") {
   // }
 
   TEST_CASE("自由传播模型调用测试") {
-    using spread::CFieldStrengthAnalyse;
-    using spread::CFreeSpaceAnalyse;
-    using spread::CStations;
-    using spread::IFileFloatArray;
-    using spread::RasterCreateFileType;
-    using spread::Station;
+    using datatype::RasterCreateFileType;
+    using datatype::Station;
+    using spatdata::CStations;
+    using spatdata::IFileFloatArray;
+    using spread::spreadanalyse::fieldstrengthanalyse::CFieldStrengthAnalyse;
+    using spread::spreadanalyse::freespace::CFreeSpaceAnalyse;
 
     std::string path = "/home/shigp/data/test_prj.tif";
     CFieldStrengthAnalyse *analyse = new CFreeSpaceAnalyse;
@@ -50,7 +53,7 @@ TEST_SUITE("传播算法测试用例") {
     float *data = arr->GetRasterDataArray();
     // 打开文件进行写操作
     std::ofstream outfile;
-    outfile.open("/home/shigp/data/result.csv", std::ios::out);
+    outfile.open("/home/shigp/data/result_test.csv", std::ios::out);
 
     // 写入数组内容到文件
     for (int64_t i = 0; i < count; i++) {
