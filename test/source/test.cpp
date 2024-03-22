@@ -35,12 +35,12 @@ TEST_SUITE("传播算法测试用例") {
     station.y = 3505543.756;
     station.frequency = 107.2;
     station.stationHeight = 30;
-    station.power = 10 * log10(100);
+    station.power = 10 * log10(100);  // 一般不使用W，而使用dBw, 故有此转化
     station.freqThreshold = 40;
     station.dem = 499;
     analyse->elevationPath = path;
     analyse->needComputeAll = true;
-    analyse->pStations = new CStations();
+    analyse->pStations = new CStations;
     analyse->pStations->AddStation(&station);
     bool flag = false;
     static_cast<CFreeSpaceAnalyse *>(analyse)->FieldStrengthAnalyse(

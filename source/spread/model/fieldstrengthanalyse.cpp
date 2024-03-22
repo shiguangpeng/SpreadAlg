@@ -58,11 +58,7 @@ bool CFieldStrengthAnalyse::FieldStrengthAnalyse(string savePath,
     pStations->GetItem(k, &para);
     ComputeOneStation(para);
   }
-  // 保存结果，生成tiff
-  // if (!SaveOutput(pData, type, RasterCreateDataType::rcdtFloat32)) {
-  //   errorInfo = "保存数据失败,
-  //   可能是场强阈值太大覆盖范围为0或目标路径有误"; return false;
-  // }
+
   // 为了避免gcc未使用变量检测
   cout << "inputpath: " << savePath << endl;
   cout << "output raster type: " << type << endl;

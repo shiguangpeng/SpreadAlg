@@ -21,9 +21,9 @@ namespace freespace {
 
 class CFreeSpaceAnalyse : public CCombineAnalyse {
  protected:
-  float_t GetRadiuValue(const Station &stationInfo, vector<double_t> *rsv,
+  float_t GetRadiuValue(const Station &stationInfo, vector<double> *rsv,
                         const OGRPoint &point);
-  void PrepareReservedValues(const Station &para, vector<double_t> *rsv);
+  void PrepareReservedValues(const Station &para, vector<double> *rsv);
 
  public:
   // 调用父类CFreeSpaceAnalyse的FieldStrengthAnalyse方法
