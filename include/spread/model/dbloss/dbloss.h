@@ -27,8 +27,8 @@ struct IDBLossElement {
   // 设置CombineAnalyse
   virtual void setCombineAnalyse(ICombineAnalyse *combineAnalyse) = 0;
   virtual void prepareAnalyseEnvi(void) = 0;
-  virtual double_t GetDBLoss(Station station, OGRPoint point) = 0;
-  virtual double_t GetDBLossRev(Station station, OGRPoint point) = 0;
+  virtual double GetDBLoss(Station station, OGRPoint point) = 0;
+  virtual double GetDBLossRev(Station station, OGRPoint point) = 0;
 };
 
 // 实现类声明
