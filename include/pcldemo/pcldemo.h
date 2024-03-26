@@ -1,22 +1,23 @@
 #pragma once
 
-#include <string>
-#include <spread/version.h>
+#include <pcldemo/version.h>
 
-namespace spread {
+#include <string>
+
+namespace pcldemo {
   /**
-   * @brief A basic class for spread model 
-   * 
+   * @brief A basic class for PCLDemo model
+   *
    */
-  class Spread {
+  class PCLDemo {
     std::string name;
 
   public:
     /**
-     * @brief Creates a new spread
+     * @brief Creates a new PCLDemo
      * @param name the name to greet
      */
-    Spread(std::string name);
+    PCLDemo(std::string name);
 
     /**
      * @brief indicate the version of program
@@ -25,4 +26,4 @@ namespace spread {
     std::string program_version() const;
   };
 
-}  // namespace spread
+}  // namespace pcldemo

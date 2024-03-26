@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.14...3.22)
 
 # Note: update this to your new project's name and version
 project(
-  Spread
+  PCLDemo
   VERSION 1.0
   LANGUAGES CXX
 )
@@ -33,6 +33,11 @@ CPMAddPackage(
   OPTIONS "FMT_INSTALL YES" # create an installable target
 )
 
+CPMAddPackage(
+  NAME pcl
+  GIT_REPOSITORY https://github.com/PointCloudLibrary/pcl.git
+  GIT_TAG pcl-1.14.0
+)
 # ---- Add source files ----
 
 # Note: globbing sources is considered bad practice as CMake's generators may not detect new files
