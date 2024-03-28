@@ -3,8 +3,8 @@
  * @author shigp
  */
 
-#ifndef INCLUDE_SPREAD_MODEL_SPREADANALYSE_H_
-#define INCLUDE_SPREAD_MODEL_SPREADANALYSE_H_
+#ifndef INCLUDE_SPREAD_SPREADBASE_H_
+#define INCLUDE_SPREAD_SPREADBASE_H_
 
 #include <spatdata/datatype.h>
 #include <spatdata/spatdata.h>
@@ -20,11 +20,11 @@ using std::string;
 using std::vector;
 
 namespace spread {
-namespace spreadanalyse {
+namespace spreadbase {
 struct AnalyseEnvironment : public IAnalyseEnvironment {
  public:
   AnalyseEnvironment();
-  // ~AnalyseEnvironment();
+  ~AnalyseEnvironment();
 
  private:
   OGRPoint *leftTop;
@@ -66,14 +66,10 @@ struct AnalyseEnvironment : public IAnalyseEnvironment {
   void SetOutputCellSize(double_t outPutCellSize) override;
 };
 
-// struct ISpreadAnalyse {
-//   virtual bool InitEnvironment();
-// };
-
-class CSpreadAnalyse {
+class CSpreadBase {
  public:
-  CSpreadAnalyse();
-  virtual ~CSpreadAnalyse() = default;
+  CSpreadBase();
+  virtual ~CSpreadBase() = default;
 
  public:
   /**
@@ -146,7 +142,7 @@ class CSpreadAnalyse {
   bool otherDataPreload;
 };
 
-}  // namespace spreadanalyse
+}  // namespace spreadbase
 
 }  // namespace spread
-#endif  // INCLUDE_SPREAD_MODEL_SPREADANALYSE_H_
+#endif  // INCLUDE_SPREAD_SPREADBASE_H_

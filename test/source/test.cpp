@@ -3,10 +3,10 @@
 
 #include <doctest/doctest.h>
 #include <spatdata/spatdata.h>
-#include <spread/model/fieldstrengthanalyse.h>
-#include <spread/model/freespace.h>
-#include <spread/model/spreadanalyse.h>
-#include <spread/spread.h>
+#include <spread.h>
+#include <spread/model/fieldstrength.h>
+#include <spread/model/freespace/freespace.h>
+#include <spread/spreadbase.h>
 
 #include <fstream>
 #include <iostream>
@@ -26,11 +26,11 @@ TEST_SUITE("传播算法测试用例") {
     using spatdata::CGDALRasterReaderByPixel;
     using spatdata::CStations;
     using spatdata::IFileFloatArray;
-    using spread::spreadanalyse::fieldstrengthanalyse::CFieldStrengthAnalyse;
-    using spread::spreadanalyse::freespace::CFreeSpaceAnalyse;
+    using spread::spreadbase::combine::freespace::CFreeSpace;
+    using spread::spreadbase::fieldstrength::CFieldStrength;
 
     std::string path = "/home/shigp/data/test_prj.tif";
-    CFieldStrengthAnalyse *analyse = new CFreeSpaceAnalyse;
+    CFieldStrength *analyse = new CFreeSpace;
     // 测试坐标
     Station station;
     station.x = 11502076.828;
@@ -50,7 +50,7 @@ TEST_SUITE("传播算法测试用例") {
     analyse->pStations = new CStations;
     analyse->pStations->AddStation(&station);
     bool flag = false;
-    static_cast<CFreeSpaceAnalyse *>(analyse)->FieldStrengthAnalyse(
+    static_cast<CFreeSpace *>(analyse)->FieldStrengthAnalyse(
         "/home/shigp/data", RasterCreateFileType::rcftTiff, &flag);
     std::cout << "return flag is:" << flag << std::endl;
     IFileFloatArray *arr = analyse->pData;
@@ -62,7 +62,6 @@ TEST_SUITE("传播算法测试用例") {
     // std::ofstream outfile;
     // std::string savePath = "/home/shigp/data/result_90mheight_test.csv";
     // outfile.open(savePath, std::ios::out);
-
     // // 写入数组内容到文件
     // for (int64_t i = 0; i < count; i++) {
     //   if (i == count - 1) {
@@ -96,10 +95,10 @@ TEST_SUITE("传播算法测试用例") {
     saveData->GetRasterBand(1)->SetNoDataValue(0);
 
     // GDALRasterBand *band = saveData->GetRasterBand(1);
-
     // CPLErr err =
     //     band->RasterIO(GF_Write, 0, 0, analyse->cols, analyse->rows, data,
     //                    analyse->cols, analyse->rows, GDT_Float32, 0, 0);
+
     CPLErr err = saveData->RasterIO(
         GF_Write, 0, 0, analyse->cols, analyse->rows, data, analyse->cols,
         analyse->rows, GDT_Float32, 1, nullptr, 0, 0, 0, nullptr);

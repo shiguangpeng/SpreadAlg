@@ -142,13 +142,19 @@ struct IGDALRasterProperties : public IGDALRasterReader {
   virtual void GetSpatialReference(OGRSpatialReference **pVal) = 0;
   virtual void GetColorTable(std::vector<GDALColorTable> **pVal) = 0;
 };
-// 按像素读取栅格，接口
+
+/**
+ * 按像素读取栅格接口
+ */
 struct IGDALRasterReaderByPixel : public IGDALRasterReader {
  public:
   virtual void GetPixelValue(int64_t col, int64_t row, float_t *pVal) = 0;
 };
+
 // 环境类的接口
 struct IAnalyseEnvironment {
+  virtual ~IAnalyseEnvironment() = default;
+
  protected:
   /// @brief 获取栅格左上角坐标
   /// @return void
@@ -186,6 +192,9 @@ struct IAnalyseEnvironment {
   virtual void SetOutputCellSize(double_t outPutCellSize) = 0;
 };
 
+/**
+ * 台站集合接口
+ */
 struct IStations {
  public:
   virtual void AddStation(Station *station) = 0;
@@ -198,6 +207,9 @@ struct IStations {
                                  bool *pVal) = 0;
 };
 
+/**
+ * 台站列表实现类
+ */
 struct CStations : public IStations {
  protected:
   std::vector<Station *> stations;
@@ -213,7 +225,9 @@ struct CStations : public IStations {
                          bool *pVal) override;
 };
 
-// 自定义矩形结构体类型
+/**
+ * 自定义矩形结构体类型
+ */
 struct CRect {
  public:
   int left;

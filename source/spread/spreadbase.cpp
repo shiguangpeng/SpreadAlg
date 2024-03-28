@@ -3,13 +3,13 @@
  * @author shigp
  */
 #include <spatdata/spatdata.h>
-#include <spread/model/spreadanalyse.h>
+#include <spread/spreadbase.h>
 
 using spatdata::CGDALRasterReaderByFileArray;
 using spatdata::IGDALRasterProperties;
 using spatdata::PBand_T;
-using spread::spreadanalyse::AnalyseEnvironment;
-using spread::spreadanalyse::CSpreadAnalyse;
+using spread::spreadbase::AnalyseEnvironment;
+using spread::spreadbase::CSpreadBase;
 
 AnalyseEnvironment::AnalyseEnvironment() {
   // 初始化类的成员变量
@@ -18,6 +18,8 @@ AnalyseEnvironment::AnalyseEnvironment() {
   cols = rows = 0;
   outPutCellSize = 0.0;
 }
+AnalyseEnvironment::~AnalyseEnvironment() {}
+
 // 重写接口对成员属性的get/set方法，对成员变量获取或设置值
 void AnalyseEnvironment::GetLeftTop(OGRPoint **point) { *point = leftTop; }
 void AnalyseEnvironment::SetLeftTop(OGRPoint *point) {
@@ -46,7 +48,7 @@ void AnalyseEnvironment::SetOutputCellSize(double_t outPutCellSize) {
   this->outPutCellSize = outPutCellSize;
 }
 
-CSpreadAnalyse::CSpreadAnalyse() {
+CSpreadBase::CSpreadBase() {
   pEnvi = nullptr;
   errorInfo = "";
   // 初始化pElevs对象
@@ -60,7 +62,7 @@ CSpreadAnalyse::CSpreadAnalyse() {
  * @brief 所有场强分析算法的基类
  * @return
  */
-bool CSpreadAnalyse::InitEnvironment() {
+bool CSpreadBase::InitEnvironment() {
   if (isInit) return true;
   bool IsOk;
   if (!pElevs) {

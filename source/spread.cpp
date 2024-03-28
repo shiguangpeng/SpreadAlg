@@ -4,7 +4,7 @@
  */
 
 #include <fmt/format.h>
-#include <spread/spread.h>
+#include <spread.h>
 
 #include <iostream>
 #include <vector>

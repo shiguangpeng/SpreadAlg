@@ -3,12 +3,12 @@
  * @author shigp
  */
 
-#ifndef INCLUDE_SPREAD_MODEL_FIELDSTRENGTHANALYSE_H_
-#define INCLUDE_SPREAD_MODEL_FIELDSTRENGTHANALYSE_H_
+#ifndef INCLUDE_SPREAD_MODEL_FIELDSTRENGTH_H_
+#define INCLUDE_SPREAD_MODEL_FIELDSTRENGTH_H_
 
 #include <spatdata/datatype.h>
 #include <spatdata/spatdata.h>
-#include <spread/model/spreadanalyse.h>
+#include <spread/spreadbase.h>
 
 #include <string>
 #include <vector>
@@ -17,14 +17,14 @@ using datatype::RasterCreateFileType;
 using datatype::Station;
 using spatdata::IAnalyseEnvironment;
 using spatdata::IStations;
-using spread::spreadanalyse::CSpreadAnalyse;
+using spread::spreadbase::CSpreadBase;
 using std::string;
 using std::vector;
 
 namespace spread {
-namespace spreadanalyse {
-namespace fieldstrengthanalyse {
-class CFieldStrengthAnalyse : public CSpreadAnalyse {
+namespace spreadbase {
+namespace fieldstrength {
+class CFieldStrength : public CSpreadBase {
  public:
   IStations *pStations;
   float_t hm;
@@ -39,8 +39,8 @@ class CFieldStrengthAnalyse : public CSpreadAnalyse {
   double_t subExtent[4];
 
  public:
-  CFieldStrengthAnalyse();
-  virtual ~CFieldStrengthAnalyse() {
+  CFieldStrength();
+  virtual ~CFieldStrength() {
     if (pData != nullptr) {
       delete pData;
       pData = nullptr;
@@ -96,8 +96,8 @@ class CFieldStrengthAnalyse : public CSpreadAnalyse {
                         double_t ymax);
 };
 
-}  // namespace fieldstrengthanalyse
-}  // namespace spreadanalyse
+}  // namespace fieldstrength
+}  // namespace spreadbase
 }  // namespace spread
 
-#endif  // INCLUDE_SPREAD_MODEL_FIELDSTRENGTHANALYSE_H_
+#endif  // INCLUDE_SPREAD_MODEL_FIELDSTRENGTH_H_

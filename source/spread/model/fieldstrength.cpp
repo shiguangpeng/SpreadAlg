@@ -3,18 +3,18 @@
  * @author shigp
  */
 
-#include <spread/model/fieldstrengthanalyse.h>
+#include <spread/model/fieldstrength.h>
 
 #include <iostream>
 #include <string>
 #include <vector>
 
 using spatdata::CRect;
-using spread::spreadanalyse::fieldstrengthanalyse::CFieldStrengthAnalyse;
+using spread::spreadbase::fieldstrength::CFieldStrength;
 using std::cout;
 using std::endl;
 
-CFieldStrengthAnalyse::CFieldStrengthAnalyse() {
+CFieldStrength::CFieldStrength() {
   hm = 2.5;
   pData = nullptr;
   offsetDB = 0;
@@ -26,8 +26,8 @@ CFieldStrengthAnalyse::CFieldStrengthAnalyse() {
   pStations = nullptr;
 }
 
-bool CFieldStrengthAnalyse::FieldStrengthAnalyse(string savePath,
-                                                 RasterCreateFileType type) {
+bool CFieldStrength::FieldStrengthAnalyse(string savePath,
+                                          RasterCreateFileType type) {
   errorInfo = "";
   int64_t Count = 0;
   pStations->GetCount(&Count);
@@ -36,7 +36,7 @@ bool CFieldStrengthAnalyse::FieldStrengthAnalyse(string savePath,
     return false;
   }
   bool IsOk;
-  if (!CSpreadAnalyse::InitEnvironment()) {
+  if (!CSpreadBase::InitEnvironment()) {
     return false;
   }
 
@@ -66,7 +66,7 @@ bool CFieldStrengthAnalyse::FieldStrengthAnalyse(string savePath,
   return true;
 }
 
-void CFieldStrengthAnalyse::ComputeOneStation(const Station& para) {
+void CFieldStrength::ComputeOneStation(const Station& para) {
   std::cout << "计算" + GetModelName() + "场强" << std::endl;
 
   std::vector<double_t> rsv;
@@ -74,8 +74,8 @@ void CFieldStrengthAnalyse::ComputeOneStation(const Station& para) {
   ComputeOneStationByExtent(para, &rsv);
 }
 
-bool CFieldStrengthAnalyse::ComputeOneStationByExtent(
-    const Station& para, std::vector<double_t>* rsv) {
+bool CFieldStrength::ComputeOneStationByExtent(const Station& para,
+                                               std::vector<double_t>* rsv) {
   //
   int MaxRadius = std::max(cols, rows);
   // 计算当前分析点的行列号
@@ -310,8 +310,8 @@ bool CFieldStrengthAnalyse::ComputeOneStationByExtent(
   return true;
 }
 
-int64_t* CFieldStrengthAnalyse::GetSubRowCol(double_t xmin, double_t ymin,
-                                             double_t xmax, double_t ymax) {
+int64_t* CFieldStrength::GetSubRowCol(double_t xmin, double_t ymin,
+                                      double_t xmax, double_t ymax) {
   // 注意：在堆上分配了内存，注意释放
   int64_t* result = new int64_t[4];
   int colmin, rowmin, colmax, rowmax;

@@ -3,23 +3,24 @@
  * @author shigp
  */
 
-#ifndef INCLUDE_SPREAD_MODEL_FREESPACE_H_
-#define INCLUDE_SPREAD_MODEL_FREESPACE_H_
+#ifndef INCLUDE_SPREAD_MODEL_FREESPACE_FREESPACE_H_
+#define INCLUDE_SPREAD_MODEL_FREESPACE_FREESPACE_H_
 
 #include <spread/model/combine.h>
 
 #include <string>
 #include <vector>
 
-using spread::spreadanalyse::combine::CCombineAnalyse;
+using spread::spreadbase::combine::CCombine;
 using std::string;
 using std::vector;
 
 namespace spread {
-namespace spreadanalyse {
+namespace spreadbase {
+namespace combine {
 namespace freespace {
 
-class CFreeSpaceAnalyse : public CCombineAnalyse {
+class CFreeSpace : public CCombine {
  protected:
   float_t GetRadiuValue(const Station &stationInfo, vector<double> *rsv,
                         const OGRPoint &point);
@@ -31,7 +32,8 @@ class CFreeSpaceAnalyse : public CCombineAnalyse {
                             bool *pVal);
 };
 }  // namespace freespace
-}  // namespace spreadanalyse
+}  // namespace combine
+}  // namespace spreadbase
 }  // namespace spread
 
-#endif  // INCLUDE_SPREAD_MODEL_FREESPACE_H_
+#endif  // INCLUDE_SPREAD_MODEL_FREESPACE_FREESPACE_H_

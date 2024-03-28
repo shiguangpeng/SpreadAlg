@@ -7,33 +7,24 @@
 #define INCLUDE_SPREAD_MODEL_COMBINE_H_
 
 #include <spread/model/dbloss/dbloss.h>
-#include <spread/model/fieldstrengthanalyse.h>
+#include <spread/model/fieldstrength.h>
 
 #include <string>
 #include <vector>
 
-using dbloss::IDBLossElement;
-using spread::spreadanalyse::fieldstrengthanalyse::CFieldStrengthAnalyse;
+using spread::IDBLossElement;
+using spread::spreadbase::fieldstrength::CFieldStrength;
 
 namespace spread {
-namespace spreadanalyse {
+namespace spreadbase {
 namespace combine {
 /**
- * @brief 联合分析类的接口
+ * @brief Combine联合分析实现类
  */
-// struct ICombineAnalyse {
-//   virtual void AddOtherRaster(string path);
-//   virtual void GetOtherRaster(int64_t nIndex, IFileFloatArray **pVal);
-//   virtual void get_ElevationData(IFileFloatArray **pVal);
-//   virtual void get_Elevation(IGDALRasterReaderByFileArray **pVal);
-//   virtual void get_NoData(double *pVal);
-//   virtual void AddDBLossElement(IDBLossElement *el);
-// };
-
-class CCombineAnalyse : public CFieldStrengthAnalyse {
+class CCombine : public CFieldStrength {
  public:
-  CCombineAnalyse() = default;
-  ~CCombineAnalyse() = default;
+  CCombine() = default;
+  ~CCombine() = default;
 
  public:
   bool FieldStrengthAnalyse(string savePath, RasterCreateFileType type);
@@ -57,7 +48,7 @@ class CCombineAnalyse : public CFieldStrengthAnalyse {
 };
 
 }  // namespace combine
-}  // namespace spreadanalyse
+}  // namespace spreadbase
 }  // namespace spread
 
 #endif  // INCLUDE_SPREAD_MODEL_COMBINE_H_

@@ -8,20 +8,20 @@
 #include <iostream>
 
 using spatdata::PBand_T;
-using spread::spreadanalyse::combine::CCombineAnalyse;
+using spread::spreadbase::combine::CCombine;
 using std::cout;
 using std::endl;
 using std::string;
 
-bool CCombineAnalyse::FieldStrengthAnalyse(std::string savePath,
-                                           RasterCreateFileType type) {
-  bool isOk = CFieldStrengthAnalyse::FieldStrengthAnalyse(savePath, type);
+bool CCombine::FieldStrengthAnalyse(std::string savePath,
+                                    RasterCreateFileType type) {
+  bool isOk = CFieldStrength::FieldStrengthAnalyse(savePath, type);
   return isOk;
 }
 // 重写接口方法
-float_t CCombineAnalyse::GetRadiuValue(const Station& stationInfo,
-                                       std::vector<double_t>* rsv,
-                                       const OGRPoint& point) {
+float_t CCombine::GetRadiuValue(const Station& stationInfo,
+                                std::vector<double_t>* rsv,
+                                const OGRPoint& point) {
   // 可能有多个绕射模型，所以els中可能有多个不同的绕射模型。
   double_t X = point.getX();
   double_t Y = point.getY();
@@ -40,11 +40,11 @@ float_t CCombineAnalyse::GetRadiuValue(const Station& stationInfo,
   return allNum;
 }
 
-string CCombineAnalyse::GetModelName() { return "CombineAnalyse"; }
+string CCombine::GetModelName() { return "CombineAnalyse"; }
 
-float_t CCombineAnalyse::GetRadiuValueRev(const Station& para,
-                                          const std::vector<double_t>& rsv,
-                                          const OGRPoint& point) const {
+float_t CCombine::GetRadiuValueRev(const Station& para,
+                                   const std::vector<double_t>& rsv,
+                                   const OGRPoint& point) const {
   double AllNum = 0;
   for (int k = els.size() - 1; k >= 0; k--) {
     double loss;
@@ -55,7 +55,7 @@ float_t CCombineAnalyse::GetRadiuValueRev(const Station& para,
   std::cout << rsv.size() << std::endl;
   return AllNum;
 }
-bool CCombineAnalyse::PrepareOtherData() {
+bool CCombine::PrepareOtherData() {
   for (int k = 0; k < static_cast<int>(otherPaths.size()); k++) {
     bool IsOk;
     PBand_T pBand;

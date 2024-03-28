@@ -8,29 +8,15 @@
 
 #include <gdal_priv.h>
 #include <spatdata/datatype.h>
-#include <spread/model/combine.h>
-#include <spread/model/spreadanalyse.h>
-#include <spread/spread.h>
+#include <spread.h>
+// #include <spread/model/combine.h>
+#include <spread/spreadbase.h>
 
 using datatype::Station;
 using spatdata::IAnalyseEnvironment;
-
-// 前置声明，避免编译报错，ICombineAnalyse抽象类作用于其对应的子类如FreeSpaceAnalyse以及其他几个子类
-struct ICombineAnalyse;
+using spread::ICombine;
 
 namespace dbloss {
-// DBLossElement结构体，父结构体，保存绕射传播的各种参数
-struct IDBLossElement {
- public:
-  // 是否复杂模型
-  virtual void getComplicatedModel(bool *isComplicated) = 0;
-  // 设置CombineAnalyse
-  virtual void setCombineAnalyse(ICombineAnalyse *combineAnalyse) = 0;
-  virtual void prepareAnalyseEnvi(void) = 0;
-  virtual double GetDBLoss(Station station, OGRPoint point) = 0;
-  virtual double GetDBLossRev(Station station, OGRPoint point) = 0;
-};
-
 // 实现类声明
 class CDBLossElement {
  public:
@@ -71,7 +57,7 @@ class CDBLossElement {
   double NoData;
   IAnalyseEnvironment *pEnvi;
   IFileFloatArray *pElevData;
-  ICombineAnalyse *pAnalyse;
+  ICombine *pAnalyse;
   float hm;
 
  protected:
@@ -83,7 +69,7 @@ class CDBLossElement {
    * @brief 设置联合分析环境
    * @param newVal
    */
-  void SetCombineAnalyse(ICombineAnalyse *newVal);
+  void SetCombineAnalyse(ICombine *newVal);
   /**
    * @brief 获得高程值
    * @param X 横坐标
