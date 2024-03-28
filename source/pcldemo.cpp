@@ -1,8 +1,11 @@
+/**
+ * @copyright all copyright reserved
+ * @author shigp
+ */
+
 #include <fmt/format.h>
-#include <pcldemo/pcldemo.h>
+#include <pcldemo.h>
 
-using namespace pcldemo;
+using pcldemo::PCLDemo;
 
-PCLDemo::PCLDemo(std::string _name) : name(std::move(_name)) {}
-
-std::string PCLDemo::program_version() const { return fmt::format("{}", name); }
+PCLDemo::PCLDemo(std::string _name) : name(std::move(_name)) { fmt::format(_name + "PCLDemo"); }
