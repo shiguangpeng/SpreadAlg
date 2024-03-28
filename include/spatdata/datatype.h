@@ -1,5 +1,8 @@
 /**
- * all copyright reserved shigp.
+ * @copyright ALL COPYRIGH RESERVED BY SHIGP
+ * @author shigp
+ * @note this header file contains all data type in spread project, such as \
+ * station definition, self-defined struct and class.
  */
 #ifndef INCLUDE_SPATDATA_DATATYPE_H_
 #define INCLUDE_SPATDATA_DATATYPE_H_

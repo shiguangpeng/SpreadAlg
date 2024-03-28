@@ -1,6 +1,8 @@
 /**
  * @copyright ALL COPYRIGH RESERVED BY SHIGP
  * @author shigp
+ * @note this header file contains all definition of spatial data, which sealed
+ * GDAL lib.
  */
 
 #ifndef INCLUDE_SPATDATA_SPATDATA_H_

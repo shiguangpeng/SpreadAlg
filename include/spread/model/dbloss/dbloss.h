@@ -15,7 +15,7 @@
 using datatype::Station;
 using spatdata::IAnalyseEnvironment;
 
-// 前置声明，避免编译报错
+// 前置声明，避免编译报错，ICombineAnalyse抽象类作用于其对应的子类如FreeSpaceAnalyse以及其他几个子类
 struct ICombineAnalyse;
 
 namespace dbloss {
