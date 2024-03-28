@@ -9,7 +9,7 @@
   <img src="https://repository-images.githubusercontent.com/254842585/4dfa7580-7ffb-11ea-99d0-46b8fe2f4170" height="175" width="auto" />
 </p>
 
-# ModernCppStarter
+# SpreadModel
 
 Setting up a new C++ project usually requires a significant amount of preparation and boilerplate code, even more so for modern C++ projects with tests, executables and continuous integration.
 This template is the result of learnings from many previous projects and should help reduce the work required to setup up a modern C++ project.
@@ -33,9 +33,9 @@ This template is the result of learnings from many previous projects and should 
 ### Adjust the template to your needs
 
 - Use this repo [as a template](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template).
-- Replace all occurrences of "Greeter" in the relevant CMakeLists.txt with the name of your project
-  - Capitalization matters here: `Greeter` means the name of the project, while `greeter` is used in file names.
-  - Remember to rename the `include/greeter` directory to use your project's lowercase name and update all relevant `#include`s accordingly.
+- Replace all occurrences of "Spread" in the relevant CMakeLists.txt with the name of your project
+  - Capitalization matters here: `Spread` means the name of the project, while `spread` is used in file names.
+  - Remember to rename the `include/spread` directory to use your project's lowercase name and update all relevant `#include`s accordingly.
 - Replace the source files with your own
 - For header-only libraries: see the comments in [CMakeLists.txt](CMakeLists.txt)
 - Add [your project's codecov token](https://docs.codecov.io/docs/quick-start) to your project's github secrets under `CODECOV_TOKEN`
@@ -47,16 +47,6 @@ Feel free to replace the License with one suited for your project.
 To cleanly separate the library and subproject code, the outer `CMakeList.txt` only defines the library itself while the tests and other subprojects are self-contained in their own directories. 
 During development it is usually convenient to [build all subprojects at once](#build-everything-at-once).
 
-### Build and run the standalone target
-
-Use the following command to build and run the executable target.
-
-```bash
-cmake -S standalone -B build/standalone
-cmake --build build/standalone
-./build/standalone/Greeter --help
-```
-
 ### Build and run test suite
 
 Use the following commands from the project's root directory to run the test suite.
@@ -67,7 +57,7 @@ cmake --build build/test
 CTEST_OUTPUT_ON_FAILURE=1 cmake --build build/test --target test
 
 # or simply call the executable: 
-./build/test/GreeterTests
+./build/test/SpreadTests
 ```
 
 To collect code coverage information, run CMake with the `-DENABLE_TEST_COVERAGE=1` option.
@@ -100,7 +90,7 @@ The documentation is automatically built and [published](https://thelartians.git
 To manually build documentation, call the following command.
 
 ```bash
-cmake -S documentation -B build/doc
+cmake -S doc -B build/doc
 cmake --build build/doc --target GenerateDocs
 # view the docs
 open build/doc/doxygen/html/index.html
@@ -118,11 +108,11 @@ cmake -S all -B build
 cmake --build build
 
 # run tests
-./build/test/GreeterTests
+./build/test/SpreadTests
 # format code
 cmake --build build --target fix-format
 # run standalone
-./build/standalone/Greeter --help
+./build/standalone/Spread --help
 # build docs
 cmake --build build --target GenerateDocs
 ```
